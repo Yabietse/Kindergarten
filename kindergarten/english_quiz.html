@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Learning Levels Quiz</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a better look and feel */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Ensure it takes full viewport height */
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        .list-item, .button {
+            transition: all 0.2s ease-in-out; /* Smooth transitions for hover effects */
+        }
+        .list-item:hover {
+            transform: translateY(-3px); /* Slight lift on hover */
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+        /* Custom modal for alerts */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e0; /* Light gray border */
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            background-color: #f8fafc; /* Very light blue-gray */
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+            text-align: left;
+        }
+        .option-item:hover {
+            background-color: #e2e8f0; /* Slightly darker on hover */
+            border-color: #93c5fd; /* Blue border on hover */
+        }
+        .option-item input[type="radio"] {
+            margin-right: 1rem;
+            cursor: pointer;
+            accent-color: #3b82f6; /* Blue accent for radio button */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">English Learning Levels</h1>
+
+        <!-- Level List Section -->
+        <div id="level-list" class="space-y-4">
+            <!-- List items will be dynamically inserted here by JavaScript -->
+        </div>
+
+        <!-- Quiz Section (initially hidden) -->
+        <div id="quiz-section" class="hidden text-left">
+            <button id="back-button" class="button bg-gray-200 text-gray-700 px-4 py-2 rounded-lg mb-6 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+                ← Back to Levels
+            </button>
+            <p id="level-title" class="text-2xl font-semibold text-blue-700 mb-6"></p>
+            <p id="question-number" class="text-lg text-gray-600 mb-2"></p>
+            <p id="question-display" class="text-xl text-gray-800 mb-6"></p>
+
+            <!-- Options container for multiple choice -->
+            <div id="options-container" class="space-y-3 mb-4">
+                <!-- Multiple choice options will be inserted here by JavaScript -->
+            </div>
+
+            <button id="submit-answer" class="button bg-blue-600 text-white px-6 py-3 rounded-lg w-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                Submit Answer
+            </button>
+            <button id="next-question" class="button bg-green-500 text-white px-6 py-3 rounded-lg w-full mt-4 hidden hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">
+                Next Question
+            </button>
+            <p id="feedback-display" class="text-lg mt-4 font-medium"></p>
+            <p id="quiz-complete-message" class="text-2xl text-green-700 font-bold mt-8 hidden">
+                Quiz Complete! Great Job!
+            </p>
+        </div>
+    </div>
+
+    <!-- Custom Modal for Messages -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="modal-message" class="text-lg text-gray-800"></p>
+            <button id="modal-ok-button" class="button bg-blue-600 text-white px-4 py-2 rounded-lg mt-4 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">OK</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration and initialization (MANDATORY in Canvas, optional for local run without persistence)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use a dummy for local execution
+        const firebaseConfigRaw = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        let firebaseConfig = {};
+        let firebaseEnabled = false;
+
+        // Attempt to parse firebaseConfig. If it's an empty object, Firebase will not be initialized.
+        try {
+            firebaseConfig = JSON.parse(firebaseConfigRaw);
+            // Check if the parsed config actually has keys (meaning it's not just an empty object from Canvas default)
+            if (Object.keys(firebaseConfig).length > 0) {
+                firebaseEnabled = true;
+            } else {
+                console.warn("No Firebase configuration provided or config is empty. Persistence will be disabled.");
+            }
+        } catch (e) {
+            console.error("Error parsing Firebase config:", e);
+            console.warn("Firebase will be disabled due to config error. Persistence will not work.");
+        }
+
+        let app, db, auth, userId;
+        let firebaseInitialized = false; // Flag to track successful Firebase initialization
+
+        // Function to show custom modal
+        function showModal(message) {
+            const modal = document.getElementById('myModal');
+            const modalMessage = document.getElementById('modal-message');
+            modalMessage.textContent = message;
+            modal.style.display = 'flex'; // Use flex to center
+        }
+
+        // Helper function to shuffle an array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Firestore: Save user's last selected level and question index
+        async function saveUserProgress(uid, levelId, questionIndex) {
+            if (!firebaseInitialized || !db) { // Check firebaseInitialized
+                console.warn("Firebase is not initialized. Progress will not be saved.");
+                return;
+            }
+            const userDocRef = doc(db, `artifacts/${appId}/users/${uid}/progress`, 'lastQuizState');
+            try {
+                await setDoc(userDocRef, {
+                    lastLevelId: levelId,
+                    lastQuestionIndex: questionIndex
+                }, { merge: true });
+                console.log(`User ${uid} progress saved: Level ${levelId}, Question ${questionIndex}`);
+            } catch (e) {
+                console.error("Error saving document: ", e);
+                showModal("Failed to save progress. Please check your internet connection.");
+            }
+        }
+
+        // Firestore: Load user's last selected level and question index and resume
+        async function loadUserProgress(uid) {
+            if (!firebaseInitialized || !db) { // Check firebaseInitialized
+                console.warn("Firebase is not initialized. Progress will not be loaded.");
+                return;
+            }
+            const userDocRef = doc(db, `artifacts/${appId}/users/${uid}/progress`, 'lastQuizState');
+            try {
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const lastLevelId = data.lastLevelId;
+                    const lastQuestionIndex = data.lastQuestionIndex || 0; // Default to 0 if not set
+
+                    const lastLevel = levels.find(level => level.id === lastLevelId);
+                    if (lastLevel) {
+                        // Check if the saved index is within bounds of the current questions for that level
+                        const effectiveIndex = Math.min(lastQuestionIndex, lastLevel.questions.length);
+                        if (effectiveIndex < lastLevel.questions.length) {
+                            showModal(`Welcome back! Resuming ${lastLevel.name} from Question ${effectiveIndex + 1}.`);
+                            showQuiz(lastLevel, effectiveIndex);
+                        } else {
+                            // If saved index is past the end, start at beginning of that level
+                            showModal(`Welcome back! You completed ${lastLevel.name}. Starting over.`);
+                            showQuiz(lastLevel, 0);
+                        }
+                        console.log(`User ${uid} last quiz state loaded: Level ${lastLevelId}, Question ${effectiveIndex}`);
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading document: ", e);
+                showModal("Failed to load previous progress.");
+            }
+        }
+
+
+        // Get modal elements
+        const modal = document.getElementById('myModal');
+        const closeButton = document.querySelector('.close-button');
+        const modalOkButton = document.getElementById('modal-ok-button');
+
+        // Close modal when close button is clicked
+        closeButton.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when OK button is clicked
+        modalOkButton.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (firebaseEnabled) {
+                try {
+                    // Initialize Firebase
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    // Sign in anonymously or with custom token (MANDATORY for persistence)
+                    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    // Get the user ID after authentication
+                    userId = auth.currentUser?.uid || crypto.randomUUID();
+                    console.log("Firebase initialized. User ID:", userId);
+                    firebaseInitialized = true; // Set flag to true on success
+
+                } catch (error) {
+                    console.error("Error initializing Firebase services:", error);
+                    showModal("Failed to initialize Firebase services. The app will run without saving progress. If you wish to enable persistence, please ensure your Firebase project is correctly configured.");
+                    firebaseInitialized = false; // Ensure flag is false on error
+                }
+            } else {
+                console.log("Firebase is not enabled (no configuration found). The app will run without saving/loading progress.");
+            }
+
+            // Always initialize the app logic, regardless of Firebase status
+            initApp();
+
+            // Load user progress ONLY if Firebase was successfully initialized
+            if (firebaseInitialized) {
+                loadUserProgress(userId);
+            }
+        });
+
+        function initApp() {
+            // Data structure for levels and questions
+            const levels = [
+                {
+                    name: "English for Kindergarten",
+                    id: "kindergarten",
+                    questions: [
+                        { question: "Which letter comes after A?", options: ["C", "B", "D", "E"], answer: "B" },
+                        { question: "What sound does a cat make?", options: ["Woof", "Meow", "Oink", "Roar"], answer: "Meow" },
+                        { question: "What is the first letter of the word 'apple'?", options: ["P", "A", "L", "E"], answer: "A" },
+                        { question: "How many eyes do you have?", options: ["One", "Three", "Two", "Four"], answer: "Two" },
+                        { question: "What is the color of grass?", options: ["Red", "Blue", "Green", "Yellow"], answer: "Green" },
+                        { question: "Say the word 'dog'. What is the last letter?", options: ["D", "O", "G", "S"], answer: "G" },
+                        { question: "What animal says 'moo'?", options: ["Pig", "Cow", "Duck", "Sheep"], answer: "Cow" },
+                        { question: "Count to three.", options: ["One two four", "One three five", "One two three", "One two zero"], answer: "One two three" },
+                        { question: "What shape is a ball?", options: ["Square", "Triangle", "Circle", "Rectangle"], answer: "Circle" },
+                        { question: "Which finger is next to your thumb?", options: ["Pinky", "Ring", "Pointer", "Middle"], answer: "Pointer" },
+                        { question: "What is the opposite of 'up'?", options: ["Down", "Left", "Right", "Over"], answer: "Down" },
+                        { question: "Which of these is a fruit?", options: ["Carrot", "Potato", "Apple", "Broccoli"], answer: "Apple" },
+                        { question: "What do you use to draw pictures?", options: ["Spoon", "Pencil", "Fork", "Knife"], answer: "Pencil" },
+                        { question: "How many legs does a bird have?", options: ["Four", "One", "Two", "Three"], answer: "Two" },
+                        { question: "What do you do with your mouth?", options: ["Walk", "See", "Eat", "Hear"], answer: "Eat" },
+                        { question: "Which animal lays eggs?", options: ["Cow", "Chicken", "Dog", "Cat"], answer: "Chicken" },
+                        { question: "What do you drink?", options: ["Sand", "Water", "Rock", "Grass"], answer: "Water" },
+                        { question: "What is the color of a stop sign?", options: ["Green", "Blue", "Red", "Yellow"], answer: "Red" },
+                        { question: "Which number comes after 5?", options: ["4", "7", "6", "8"], answer: "6" },
+                        { question: "What is a baby cat called?", options: ["Pup", "Kitten", "Calf", "Chick"], answer: "Kitten" },
+                        { question: "What do you wear on your head?", options: ["Shoe", "Hat", "Glove", "Sock"], answer: "Hat" },
+                        { question: "Which of these is a vegetable?", options: ["Grape", "Banana", "Carrot", "Orange"], answer: "Carrot" },
+                        { question: "What is the biggest animal on land?", options: ["Mouse", "Elephant", "Ant", "Rabbit"], answer: "Elephant" },
+                        { question: "What is the color of the sun?", options: ["Purple", "Yellow", "Black", "Brown"], answer: "Yellow" },
+                        { question: "What do you use to hear?", options: ["Nose", "Eyes", "Ears", "Hands"], answer: "Ears" },
+                        { question: "Which part of a tree is underground?", options: ["Leaf", "Branch", "Root", "Trunk"], answer: "Root" },
+                        { question: "What is a small, soft, flying insect that makes honey?", options: ["Spider", "Fly", "Bee", "Ant"], answer: "Bee" },
+                        { question: "Which holiday is known for Santa Claus?", options: ["Easter", "Halloween", "Christmas", "Thanksgiving"], answer: "Christmas" },
+                        { question: "What is the shape of an egg?", options: ["Square", "Circle", "Oval", "Triangle"], answer: "Oval" },
+                        { question: "What do you use to smell?", options: ["Eyes", "Nose", "Mouth", "Ears"], answer: "Nose" },
+                        { question: "What animal hops?", options: ["Fish", "Bird", "Kangaroo", "Snake"], answer: "Kangaroo" },
+                        { question: "What is the opposite of 'day'?", options: ["Morning", "Night", "Afternoon", "Noon"], answer: "Night" },
+                        { question: "Which of these is a bird?", options: ["Fish", "Dog", "Sparrow", "Cat"], answer: "Sparrow" },
+                        { question: "What is the color of chocolate?", options: ["Pink", "Green", "Brown", "Blue"], answer: "Brown" },
+                        { question: "What do you wear to keep warm in winter?", options: ["Swimsuit", "T-shirt", "Coat", "Shorts"], answer: "Coat" },
+                        { question: "Which letter is in the middle of 'cat'?", options: ["C", "T", "A", "S"], answer: "A" },
+                        { question: "What do you call a baby horse?", options: ["Calf", "Foal", "Cub", "Chick"], answer: "Foal" },
+                        { question: "What do you do with your hands?", options: ["Run", "Clap", "Sleep", "Jump"], answer: "Clap" },
+                        { question: "Which animal has a long trunk?", options: ["Monkey", "Giraffe", "Elephant", "Lion"], answer: "Elephant" },
+                        { question: "What is the color of snow?", options: ["Red", "Black", "White", "Gray"], answer: "White" },
+                        { question: "What is a small, sweet, red fruit?", options: ["Lemon", "Strawberry", "Cucumber", "Broccoli"], answer: "Strawberry" },
+                        { question: "What do you use to see?", options: ["Ears", "Nose", "Eyes", "Mouth"], answer: "Eyes" },
+                        { question: "Which vehicle flies in the sky?", options: ["Car", "Boat", "Airplane", "Train"], answer: "Airplane" },
+                        { question: "What is the opposite of 'short'?", options: ["Big", "Tall", "Small", "Thin"], answer: "Tall" },
+                        { question: "What is the number after seven?", options: ["Six", "Eight", "Nine", "Ten"], answer: "Eight" },
+                        { question: "What do you find in a book?", options: ["Toys", "Food", "Words", "Clothes"], answer: "Words" },
+                        { question: "Which month is your birthday in? (Example, pick one that's a common one)", options: ["July", "October", "December", "May"], answer: "May" },
+                        { question: "What do you use to kick a ball?", options: ["Hands", "Head", "Feet", "Arms"], answer: "Feet" },
+                        { question: "What animal has stripes?", options: ["Bear", "Tiger", "Rabbit", "Deer"], answer: "Tiger" },
+                        { question: "What is the name of the sound a clock makes?", options: ["Ding", "Ring", "Tick-tock", "Buzz"], answer: "Tick-tock" }
+                    ]
+                },
+                {
+                    name: "English for KG 1",
+                    id: "kg1",
+                    questions: [
+                        { question: "What is the opposite of 'big'?", options: ["Huge", "Small", "Tall", "Wide"], answer: "Small" },
+                        { question: "Spell the word 'sun'.", options: ["S-U-N", "S-O-N", "S-U-M", "S-U-N-E"], answer: "S-U-N" },
+                        { question: "What is a baby dog called?", options: ["Kitten", "Calf", "Puppy", "Chick"], answer: "Puppy" },
+                        { question: "Finish the sentence: 'The bird can ______.'", options: ["Walk", "Run", "Swim", "Fly"], answer: "Fly" },
+                        { question: "What do you wear on your feet?", options: ["Hat", "Gloves", "Shoes", "Scarf"], answer: "Shoes" },
+                        { question: "Which fruit is yellow and long?", options: ["Apple", "Orange", "Banana", "Grape"], answer: "Banana" },
+                        { question: "What is the name of the season when leaves fall?", options: ["Spring", "Summer", "Autumn", "Winter"], answer: "Autumn" },
+                        { question: "How many fingers are on one hand?", options: ["Four", "Six", "Five", "Ten"], answer: "Five" },
+                        { question: "What is the past tense of 'eat'?", options: ["Eats", "Eating", "Ate", "Eaten"], answer: "Ate" },
+                        { question: "What is a group of fish called?", options: ["Flock", "Herd", "School", "Pack"], answer: "School" },
+                        { question: "Which animal says 'oink'?", options: ["Cow", "Pig", "Dog", "Chicken"], answer: "Pig" },
+                        { question: "What do you say when you meet someone in the morning?", options: ["Good night", "Goodbye", "Good morning", "Good evening"], answer: "Good morning" },
+                        { question: "What is the opposite of 'cold'?", options: ["Wet", "Hot", "Dry", "Warm"], answer: "Hot" },
+                        { question: "Which word means to look closely?", options: ["Run", "Jump", "Observe", "Sleep"], answer: "Observe" },
+                        { question: "What do you use to cut paper?", options: ["Hammer", "Scissors", "Spoon", "Brush"], answer: "Scissors" },
+                        { question: "What is the sound a bee makes?", options: ["Buzz", "Chirp", "Squeak", "Hiss"], answer: "Buzz" },
+                        { question: "What is a baby sheep called?", options: ["Calf", "Lamb", "Kid", "Fawn"], answer: "Lamb" },
+                        { question: "Which color is usually associated with sadness?", options: ["Red", "Blue", "Yellow", "Green"], answer: "Blue" },
+                        { question: "What do you use to smell flowers?", options: ["Eyes", "Ears", "Nose", "Mouth"], answer: "Nose" },
+                        { question: "What is the name of the place where you go to learn?", options: ["Park", "Shop", "School", "Home"], answer: "School" },
+                        { question: "Which word completes the phrase: 'As happy as a ______.'", options: ["Bug", "Bird", "Clam", "Lion"], answer: "Clam" },
+                        { question: "What is the opposite of 'loud'?", options: ["Quiet", "Fast", "Big", "Bright"], answer: "Quiet" },
+                        { question: "What is the past tense of 'run'?", options: ["Runs", "Running", "Ran", "Runned"], answer: "Ran" },
+                        { question: "What is a common pet that barks?", options: ["Cat", "Fish", "Dog", "Bird"], answer: "Dog" },
+                        { question: "What do you use to clean your teeth?", options: ["Hairbrush", "Spoon", "Toothbrush", "Comb"], answer: "Toothbrush" },
+                        { question: "Which day comes after Sunday?", options: ["Tuesday", "Monday", "Saturday", "Wednesday"], answer: "Monday" },
+                        { question: "What do you call a building where sick people go?", options: ["School", "Shop", "Hospital", "Zoo"], answer: "Hospital" },
+                        { question: "Which word means 'very large'?", options: ["Tiny", "Small", "Huge", "Thin"], answer: "Huge" },
+                        { question: "What is the sound a dog makes?", options: ["Meow", "Bark", "Moo", "Quack"], answer: "Bark" },
+                        { question: "Which season is hot?", options: ["Winter", "Autumn", "Spring", "Summer"], answer: "Summer" },
+                        { question: "What do you wear to swim?", options: ["Jacket", "Sweater", "Swimsuit", "Boots"], answer: "Swimsuit" },
+                        { question: "What is the opposite of 'empty'?", options: ["Open", "Full", "Light", "Dark"], answer: "Full" },
+                        { question: "What is the plural of 'cat'?", options: ["Cats", "Catts", "Cates", "Cat's"], answer: "Cats" },
+                        { question: "Which is a body part?", options: ["Chair", "Table", "Hand", "Book"], answer: "Hand" },
+                        { question: "What is the purpose of a chair?", options: ["To eat", "To sleep", "To sit", "To read"], answer: "To sit" },
+                        { question: "What is the color of an orange?", options: ["Red", "Green", "Orange", "Yellow"], answer: "Orange" },
+                        { question: "Which word means 'to jump high'?", options: ["Crawl", "Leap", "Walk", "Run"], answer: "Leap" },
+                        { question: "What do you use to write with on a blackboard?", options: ["Pen", "Pencil", "Crayon", "Chalk"], answer: "Chalk" },
+                        { question: "What is the sound of a bell?", options: ["Boom", "Ring", "Hiss", "Chirp"], answer: "Ring" },
+                        { question: "What do you use to sweep the floor?", options: ["Mop", "Spoon", "Broom", "Fork"], answer: "Broom" },
+                        { question: "What do you call a baby bird?", options: ["Kitten", "Chick", "Pup", "Lamb"], answer: "Chick" },
+                        { question: "Which word rhymes with 'tree'?", options: ["Car", "Boat", "Bee", "House"], answer: "Bee" },
+                        { question: "What do you use to drink soup?", options: ["Knife", "Fork", "Spoon", "Plate"], answer: "Spoon" },
+                        { question: "What is the opposite of 'dark'?", options: ["Night", "Shadow", "Light", "Quiet"], answer: "Light" },
+                        { question: "What is the shape of a window?", options: ["Circle", "Square", "Star", "Heart"], answer: "Square" },
+                        { question: "What do you say when you leave someone?", options: ["Hello", "Good morning", "Goodbye", "Thank you"], answer: "Goodbye" },
+                        { question: "Which word means 'very good'?", options: ["Bad", "Okay", "Excellent", "Poor"], answer: "Excellent" },
+                        { question: "What is the past tense of 'sleep'?", options: ["Sleeping", "Slept", "Sleeps", "Sleeped"], answer: "Slept" },
+                        { question: "What do you wear on your hands to keep them warm?", options: ["Socks", "Gloves", "Shoes", "Hat"], answer: "Gloves" },
+                        { question: "What is the name of the sound a snake makes?", options: ["Hiss", "Roar", "Buzz", "Squeak"], answer: "Hiss" }
+                    ]
+                },
+                {
+                    name: "English for KG 2",
+                    id: "kg2",
+                    questions: [
+                        { question: "What color is the sky on a sunny day?", options: ["Green", "Blue", "Yellow", "Red"], answer: "Blue" },
+                        { question: "What is the plural of 'mouse'?", options: ["Mouses", "Mice", "Mouse's", "Moose"], answer: "Mice" },
+                        { question: "Which month comes after January?", options: ["March", "February", "April", "December"], answer: "February" },
+                        { question: "What do you call a very small house?", options: ["Mansion", "Cottage", "Skyscraper", "Castle"], answer: "Cottage" },
+                        { question: "Fill in the blank: 'I am happy _____ I got a new toy.'", options: ["But", "So", "Because", "Or"], answer: "Because" },
+                        { question: "What is the sound a duck makes?", options: ["Woof", "Quack", "Meow", "Oink"], answer: "Quack" },
+                        { question: "What is the opposite of 'hot'?", options: ["Warm", "Cold", "Boiling", "Sunny"], answer: "Cold" },
+                        { question: "Name a feeling word.", options: ["Tree", "Car", "Happy", "Book"], answer: "Happy" },
+                        { question: "What do you use to brush your teeth?", options: ["Hairbrush", "Toothbrush", "Paintbrush", "Comb"], answer: "Toothbrush" },
+                        { question: "What is the capital letter of 'd'?", options: ["D", "b", "c", "A"], answer: "D" },
+                        { question: "What is the plural of 'foot'?", options: ["Foots", "Feet", "Foot's", "Footes"], answer: "Feet" },
+                        { question: "Which season has flowers blooming?", options: ["Winter", "Summer", "Spring", "Autumn"], answer: "Spring" },
+                        { question: "What do you call a baby cow?", options: ["Puppy", "Kitten", "Calf", "Lamb"], answer: "Calf" },
+                        { question: "Fill in the blank: 'He went _____ the store.'", options: ["On", "Under", "To", "With"], answer: "To" },
+                        { question: "What is the opposite of 'open'?", options: ["Start", "Close", "Wide", "Big"], answer: "Close" },
+                        { question: "What is the sound a frog makes?", options: ["Chirp", "Ribbit", "Hiss", "Squeak"], answer: "Ribbit" },
+                        { question: "Which word means 'to run fast'?", options: ["Crawl", "Sprint", "Walk", "Jump"], answer: "Sprint" },
+                        { question: "What do you wear when it rains?", options: ["Hat", "Shorts", "Umbrella", "Sandals"], answer: "Umbrella" },
+                        { question: "What is the plural of 'tooth'?", options: ["Tooths", "Teeth", "Tooth's", "Toothes"], answer: "Teeth" },
+                        { question: "What do you use to sweep up dust?", options: ["Mop", "Sponge", "Broom", "Vacuum"], answer: "Broom" },
+                        { question: "Which month is the longest?", options: ["February", "January", "December", "March"], answer: "January" },
+                        { question: "What do you call a person who helps sick people?", options: ["Teacher", "Doctor", "Chef", "Pilot"], answer: "Doctor" },
+                        { question: "Fill in the blank: 'I like apples _____ oranges.'", options: ["But", "Or", "And", "So"], answer: "And" },
+                        { question: "What is the sound a snake makes?", options: ["Bark", "Hiss", "Moo", "Chirp"], answer: "Hiss" },
+                        { question: "What is the opposite of 'clean'?", options: ["New", "Dirty", "Shiny", "Soft"], answer: "Dirty" },
+                        { question: "Which word means 'to talk very quietly'?", options: ["Shout", "Whisper", "Sing", "Yell"], answer: "Whisper" },
+                        { question: "What do you use to color pictures?", options: ["Pen", "Pencil", "Crayons", "Scissors"], answer: "Crayons" },
+                        { question: "What is the capital letter of 'a'?", options: ["A", "e", "i", "o"], answer: "A" },
+                        { question: "What is the plural of 'man'?", options: ["Mans", "Men", "Man's", "Manned"], answer: "Men" },
+                        { question: "What do you call a baby horse?", options: ["Calf", "Cub", "Foal", "Kitten"], answer: "Foal" },
+                        { question: "Which day comes after Friday?", options: ["Monday", "Thursday", "Saturday", "Sunday"], answer: "Saturday" },
+                        { question: "What is the sound of a car horn?", options: ["Ring", "Beep", "Chirp", "Roar"], answer: "Beep" },
+                        { question: "What is the opposite of 'soft'?", options: ["Hard", "Smooth", "Gentle", "Rough"], answer: "Hard" },
+                        { question: "Which word means 'to create something'?", options: ["Destroy", "Copy", "Make", "Break"], answer: "Make" },
+                        { question: "What do you wear to protect your hands?", options: ["Socks", "Gloves", "Shoes", "Hat"], answer: "Gloves" },
+                        { question: "What is the plural of 'child'?", options: ["Childs", "Children", "Child's", "Childen"], answer: "Children" },
+                        { question: "What do you call a person who cooks food?", options: ["Doctor", "Teacher", "Chef", "Artist"], answer: "Chef" },
+                        { question: "Fill in the blank: 'The sun shines _____.'", options: ["Darkly", "Brightly", "Slowly", "Sadly"], answer: "Brightly" },
+                        { question: "What is the sound of a drum?", options: ["Ring", "Bang", "Buzz", "Chirp"], answer: "Bang" },
+                        { question: "What is the opposite of 'inside'?", options: ["Above", "Below", "Outside", "Under"], answer: "Outside" },
+                        { question: "Which word means 'to run very fast'?", options: ["Jog", "Walk", "Sprint", "Crawl"], answer: "Sprint" },
+                        { question: "What do you use to tell time?", options: ["Book", "Clock", "Ball", "Chair"], answer: "Clock" },
+                        { question: "What is the plural of 'fish'?", options: ["Fish", "Fishes", "Fish's", "Fishs"], answer: "Fish" },
+                        { question: "What do you call the period of time from evening to morning?", options: ["Day", "Afternoon", "Night", "Noon"], answer: "Night" },
+                        { question: "What is the sound a clock makes?", options: ["Tick", "Boom", "Meow", "Woof"], answer: "Tick" },
+                        { question: "What do you use to clean clothes?", options: ["Soap", "Spoon", "Book", "Toy"], answer: "Soap" },
+                        { question: "Which word means 'to put things in order'?", options: ["Mix", "Scatter", "Arrange", "Hide"], answer: "Arrange" },
+                        { question: "What is the opposite of 'heavy'?", options: ["Big", "Light", "Strong", "Weak"], answer: "Light" },
+                        { question: "What do you call a baby deer?", options: ["Cub", "Calf", "Fawn", "Kitten"], answer: "Fawn" },
+                        { question: "What is the sound of rain?", options: ["Boom", "Pitter-patter", "Clang", "Whistle"], answer: "Pitter-patter" }
+                    ]
+                },
+                {
+                    name: "English for KG 3",
+                    id: "kg3",
+                    questions: [
+                        { question: "What do you use to write on a paper?", options: ["Eraser", "Pen", "Ruler", "Scissors"], answer: "Pen" },
+                        { question: "Complete the sentence: 'The cat sat on the ______.'", options: ["Chair", "Table", "Mat", "Bed"], answer: "Mat" },
+                        { question: "What is the opposite of 'fast'?", options: ["Quick", "Rapid", "Slow", "Speedy"], answer: "Slow" },
+                        { question: "Which day comes after Tuesday?", options: ["Monday", "Wednesday", "Thursday", "Friday"], answer: "Wednesday" },
+                        { question: "What is the present participle of 'run'?", options: ["Run", "Ran", "Running", "Runs"], answer: "Running" },
+                        { question: "What is a place where books are kept?", options: ["Zoo", "Park", "Library", "Museum"], answer: "Library" },
+                        { question: "What is the collective noun for a group of lions?", options: ["Flock", "Herd", "Pride", "School"], answer: "Pride" },
+                        { question: "What is the sound of thunder?", options: ["Whistle", "Rumble", "Chirp", "Squeak"], answer: "Rumble" },
+                        { question: "Which season is known for snow?", options: ["Spring", "Summer", "Autumn", "Winter"], answer: "Winter" },
+                        { question: "What is the past tense of 'sleep'?", options: ["Sleeps", "Sleeping", "Slept", "Sleeped"], answer: "Slept" },
+                        { question: "What is the plural of 'city'?", options: ["Citys", "Cities", "City's", "Citiez"], answer: "Cities" },
+                        { question: "What is an adjective that describes 'delicious'?", options: ["Tasty", "Fast", "Sad", "Big"], answer: "Tasty" },
+                        { question: "Fill in the blank: 'She is _____ than her brother.'", options: ["Tall", "Taller", "Tallest", "Tallness"], answer: "Taller" },
+                        { question: "What do you call a person who teaches?", options: ["Doctor", "Chef", "Teacher", "Engineer"], answer: "Teacher" },
+                        { question: "Which word means 'to begin'?", options: ["End", "Stop", "Start", "Finish"], answer: "Start" },
+                        { question: "What is the sound of a violin?", options: ["Roar", "Strum", "Squeak", "Hum"], answer: "Strum" },
+                        { question: "What is the opposite of 'beautiful'?", options: ["Pretty", "Ugly", "Lovely", "Nice"], answer: "Ugly" },
+                        { question: "What is a common noun?", options: ["John", "Tree", "Paris", "Monday"], answer: "Tree" },
+                        { question: "What do you use to clean dishes?", options: ["Broom", "Sponge", "Towel", "Brush"], answer: "Sponge" },
+                        { question: "What is the past tense of 'sing'?", options: ["Sings", "Singing", "Sang", "Sung"], answer: "Sang" },
+                        { question: "What is the plural of 'baby'?", options: ["Babys", "Babies", "Baby's", "Babyies"], answer: "Babies" },
+                        { question: "Which month has 30 days?", options: ["January", "February", "April", "March"], answer: "April" },
+                        { question: "What do you call a person who writes books?", options: ["Painter", "Singer", "Author", "Dancer"], answer: "Author" },
+                        { question: "Fill in the blank: 'He drives his car _____.'", options: ["Quick", "Slow", "Carefully", "Fast"], answer: "Carefully" },
+                        { question: "What is the sound of a whistle?", options: ["Beep", "Ring", "Whistle", "Boom"], answer: "Whistle" },
+                        { question: "What is the opposite of 'easy'?", options: ["Simple", "Difficult", "Quick", "Soft"], answer: "Difficult" },
+                        { question: "What is a proper noun?", options: ["Cat", "City", "River", "Amazon River"], answer: "Amazon River" },
+                        { question: "What do you use to draw a straight line?", options: ["Pencil", "Eraser", "Ruler", "Scissors"], answer: "Ruler" },
+                        { question: "What is the past tense of 'build'?", options: ["Builds", "Building", "Built", "Builded"], answer: "Built" },
+                        { question: "What is the plural of 'knife'?", options: ["Knifes", "Knives", "Knife's", "Knive"], answer: "Knives" },
+                        { question: "What is a group of birds called?", options: ["Herd", "Pack", "School", "Flock"], answer: "Flock" },
+                        { question: "What is the sound of wind?", options: ["Roar", "Rustle", "Chirp", "Buzz"], answer: "Rustle" },
+                        { question: "Which season are trees bare?", options: ["Spring", "Summer", "Autumn", "Winter"], answer: "Winter" },
+                        { question: "What is the past tense of 'go'?", options: ["Goes", "Going", "Went", "Gone"], answer: "Went" },
+                        { question: "What is the plural of 'story'?", options: ["Storys", "Stories", "Story's", "Storyes"], answer: "Stories" },
+                        { question: "What is a verb that shows a state of being?", options: ["Action verb", "Linking verb", "Helping verb", "Modal verb"], answer: "Linking verb" },
+                        { question: "Fill in the blank: 'The dog ran _____ the house.'", options: ["On", "In", "Around", "Under"], answer: "Around" },
+                        { question: "What is the sound of a breaking glass?", options: ["Clang", "Shatter", "Ring", "Thump"], answer: "Shatter" },
+                        { question: "What is the opposite of 'arrive'?", options: ["Come", "Leave", "Stay", "Go"], answer: "Leave" },
+                        { question: "What is a compound word?", options: ["Rain", "Book", "Raincoat", "Table"], answer: "Raincoat" },
+                        { question: "What do you call a person who makes art?", options: ["Singer", "Dancer", "Artist", "Writer"], answer: "Artist" },
+                        { question: "What is the past tense of 'read'?", options: ["Reads", "Reading", "Read", "Red"], answer: "Read" },
+                        { question: "What is the plural of 'fox'?", options: ["Foxs", "Foxes", "Fox's", "Foxies"], answer: "Foxes" },
+                        { question: "What is the sound of a crying baby?", options: ["Laugh", "Wail", "Hum", "Sing"], answer: "Wail" },
+                        { question: "Which word means 'to finish something'?", options: ["Start", "Continue", "Complete", "Begin"], answer: "Complete" },
+                        { question: "What do you use to measure temperature?", options: ["Ruler", "Scale", "Thermometer", "Clock"], answer: "Thermometer" },
+                        { question: "What is the comparative form of 'small'?", options: ["Smaller", "Smallest", "More small", "Littler"], answer: "Smaller" },
+                        { question: "What is the opposite of 'front'?", options: ["Side", "Back", "Top", "Bottom"], answer: "Back" },
+                        { question: "What is the past tense of 'catch'?", options: ["Catches", "Catching", "Caught", "Catched"], answer: "Caught" },
+                        { question: "What is the plural of 'brush'?", options: ["Brushs", "Brushes", "Brush's", "Brushies"], answer: "Brushes" }
+                    ]
+                },
+                {
+                    name: "English for 1st Grade",
+                    id: "grade1",
+                    questions: [
+                        { question: "Yesterday, I (go) _______ to the park. (Fill in the blank with the correct past tense verb)", options: ["Goes", "Going", "Went", "Gone"], answer: "Went" },
+                        { question: "Identify the verb in the sentence: 'She sings beautifully.'", options: ["She", "Sings", "Beautifully", "Her"], answer: "Sings" },
+                        { question: "What is the plural form of 'leaf'?", options: ["Leafs", "Leaves", "Leaf's", "Leafies"], answer: "Leaves" },
+                        { question: "What is the shortest month of the year?", options: ["January", "February", "March", "April"], answer: "February" },
+                        { question: "Name a common noun.", options: ["London", "Dog", "Mount Everest", "Sarah"], answer: "Dog" },
+                        { question: "What is the past tense of 'see'?", options: ["Sees", "Seeing", "Saw", "Seen"], answer: "Saw" },
+                        { question: "What is an antonym for 'up'?", options: ["Over", "Down", "Above", "Under"], answer: "Down" },
+                        { question: "What punctuation mark is used at the end of a question?", options: ["Period", "Exclamation mark", "Question mark", "Comma"], answer: "Question mark" },
+                        { question: "Complete the idiom: 'As busy as a ______.'", options: ["Snail", "Bear", "Bee", "Fox"], answer: "Bee" },
+                        { question: "What part of speech describes a noun?", options: ["Verb", "Adverb", "Adjective", "Pronoun"], answer: "Adjective" },
+                        { question: "What is the plural of 'tooth'?", options: ["Tooths", "Teeth", "Tooth's", "Toothies"], answer: "Teeth" },
+                        { question: "Which word is a synonym for 'big'?", options: ["Small", "Tiny", "Large", "Little"], answer: "Large" },
+                        { question: "Identify the pronoun in the sentence: 'He ran fast.'", options: ["Ran", "Fast", "He", "The"], answer: "He" },
+                        { question: "What is the past tense of 'write'?", options: ["Writes", "Writing", "Wrote", "Written"], answer: "Wrote" },
+                        { question: "What is the name of a place where you can borrow books?", options: ["Bookstore", "Library", "Café", "Museum"], answer: "Library" },
+                        { question: "What is the opposite of 'happy'?", options: ["Joyful", "Sad", "Glad", "Cheerful"], answer: "Sad" },
+                        { question: "Which punctuation mark shows excitement?", options: ["Period", "Question mark", "Comma", "Exclamation mark"], answer: "Exclamation mark" },
+                        { question: "Complete the sentence: 'The cat is _____ the table.'", options: ["In", "Under", "On", "With"], answer: "On" },
+                        { question: "What is the plural of 'man'?", options: ["Mans", "Men", "Man's", "Menn"], answer: "Men" },
+                        { question: "What is the past tense of 'drive'?", options: ["Drives", "Driving", "Drove", "Driven"], answer: "Drove" },
+                        { question: "What is a group of sheep called?", options: ["Herd", "Flock", "Pack", "School"], answer: "Flock" },
+                        { question: "What is an antonym for 'dark'?", options: ["Shadow", "Light", "Night", "Dim"], answer: "Light" },
+                        { question: "Which word describes an action?", options: ["Blue", "Quickly", "Run", "Table"], answer: "Run" },
+                        { question: "What is the past tense of 'come'?", options: ["Comes", "Coming", "Came", "Comed"], answer: "Came" },
+                        { question: "What is the plural of 'mouse'?", options: ["Mouses", "Mice", "Mouse's", "Moose"], answer: "Mice" },
+                        { question: "Which month comes before July?", options: ["August", "June", "May", "September"], answer: "June" },
+                        { question: "What do you call a person who sings?", options: ["Dancer", "Actor", "Singer", "Painter"], answer: "Singer" },
+                        { question: "What is a synonym for 'cold'?", options: ["Hot", "Warm", "Chilly", "Sunny"], answer: "Chilly" },
+                        { question: "What punctuation mark is used to separate items in a list?", options: ["Period", "Question mark", "Comma", "Exclamation mark"], answer: "Comma" },
+                        { question: "Complete the idiom: 'It's raining cats and ______.'", options: ["Dogs", "Birds", "Fish", "Mice"], answer: "Dogs" },
+                        { question: "What part of speech tells how, when, or where an action happens?", options: ["Noun", "Verb", "Adjective", "Adverb"], answer: "Adverb" },
+                        { question: "What is the plural of 'child'?", options: ["Childs", "Children", "Child's", "Childies"], answer: "Children" },
+                        { question: "What is the past tense of 'sleep'?", options: ["Sleeps", "Sleeping", "Slept", "Sleeped"], answer: "Slept" },
+                        { question: "What is the opposite of 'empty'?", options: ["Full", "Open", "Light", "Closed"], answer: "Full" },
+                        { question: "Which word is a verb: 'apple', 'jump', 'red', 'slow'?", options: ["Apple", "Jump", "Red", "Slow"], answer: "Jump" },
+                        { question: "What is the past tense of 'take'?", options: ["Takes", "Taking", "Took", "Taken"], answer: "Took" },
+                        { question: "What is a group of cows called?", options: ["Flock", "Herd", "School", "Pack"], answer: "Herd" },
+                        { question: "What is an antonym for 'fast'?", options: ["Quick", "Slow", "Rapid", "Speedy"], answer: "Slow" },
+                        { question: "Which word is an adjective: 'run', 'blue', 'quickly', 'eat'?", options: ["Run", "Blue", "Quickly", "Eat"], answer: "Blue" },
+                        { question: "What is the purpose of a capital letter at the beginning of a sentence?", options: ["To make it longer", "To make it louder", "To show it's a new sentence", "To make it fancy"], answer: "To show it's a new sentence" },
+                        { question: "What is the plural of 'wolf'?", options: ["Wolfs", "Wolves", "Wolf's", "Wolfe"], answer: "Wolves" },
+                        { question: "What is a synonym for 'sad'?", options: ["Happy", "Angry", "Upset", "Excited"], answer: "Upset" },
+                        { question: "Identify the subject in the sentence: 'The dog barked loudly.'", options: ["Barked", "Loudly", "The dog", "Dog"], answer: "The dog" },
+                        { question: "What is the past tense of 'swim'?", options: ["Swims", "Swimming", "Swam", "Swum"], answer: "Swam" },
+                        { question: "What is a group of ants called?", options: ["Colony", "Swarm", "Nest", "Crowd"], answer: "Colony" },
+                        { question: "What is an antonym for 'start'?", options: ["Begin", "Finish", "Launch", "Commence"], answer: "Finish" },
+                        { question: "Which word is a noun: 'quickly', 'sing', 'table', 'happy'?", options: ["Quickly", "Sing", "Table", "Happy"], answer: "Table" },
+                        { question: "What is the past tense of 'break'?", options: ["Breaks", "Breaking", "Broke", "Broken"], answer: "Broke" },
+                        { question: "What is the plural of 'sheep'?", options: ["Sheeps", "Sheep", "Sheep's", "Sheepies"], answer: "Sheep" },
+                        { question: "What is the past tense of 'build'?", options: ["Builds", "Building", "Built", "Builded"], answer: "Built" }
+                    ]
+                },
+                {
+                    name: "English for 2nd Grade",
+                    id: "grade2",
+                    questions: [
+                        { question: "What is the plural of 'child'?", options: ["Childs", "Children", "Child's", "Childen"], answer: "Children" },
+                        { question: "Identify the adjective in the sentence: 'The tall tree swayed.'", options: ["The", "Tall", "Tree", "Swayed"], answer: "Tall" },
+                        { question: "What is a synonym for 'happy'?", options: ["Angry", "Joyful", "Sad", "Tired"], answer: "Joyful" },
+                        { question: "Which word is a pronoun: 'He', 'run', 'blue', 'quickly'?", options: ["He", "Run", "Blue", "Quickly"], answer: "He" },
+                        { question: "What is the main idea of a story?", options: ["The setting", "The characters", "What the story is mostly about", "The ending"], answer: "What the story is mostly about" },
+                        { question: "Correct the sentence: 'Me and John went to the store.'", options: ["John and me went to the store.", "John and I went to the store.", "I and John went to the store.", "Me went to the store with John."], answer: "John and I went to the store." },
+                        { question: "What are words that sound the same but have different meanings and spellings called?", options: ["Synonyms", "Antonyms", "Homophones", "Homographs"], answer: "Homophones" },
+                        { question: "What is the past participle of 'write'?", options: ["Write", "Wrote", "Writing", "Written"], answer: "Written" },
+                        { question: "Name a proper noun.", options: ["Cat", "City", "London", "River"], answer: "London" },
+                        { question: "What is the purpose of a comma in a list?", options: ["To end a sentence", "To show excitement", "To separate items", "To ask a question"], answer: "To separate items" },
+                        { question: "What is the plural of 'tooth'?", options: ["Tooths", "Teeth", "Tooth's", "Toothes"], answer: "Teeth" },
+                        { question: "Identify the adverb in the sentence: 'She sang loudly.'", options: ["She", "Sang", "Loudly", "Song"], answer: "Loudly" },
+                        { question: "What is an antonym for 'brave'?", options: ["Courageous", "Fearful", "Bold", "Strong"], answer: "Fearful" },
+                        { question: "Which word is a conjunction: 'and', 'big', 'jump', 'under'?", options: ["And", "Big", "Jump", "Under"], answer: "And" },
+                        { question: "What is a metaphor?", options: ["A comparison using 'like' or 'as'", "A comparison not using 'like' or 'as'", "An exaggeration", "Giving human qualities to objects"], answer: "A comparison not using 'like' or 'as'" },
+                        { question: "Correct the sentence: 'He don't like broccoli.'", options: ["He no like broccoli.", "He doesn't like broccoli.", "He isn't like broccoli.", "He not like broccoli."], answer: "He doesn't like broccoli." },
+                        { question: "What is the past participle of 'go'?", options: ["Goes", "Going", "Went", "Gone"], answer: "Gone" },
+                        { question: "Name a collective noun for a group of wolves.", options: ["Herd", "Flock", "Pack", "School"], answer: "Pack" },
+                        { question: "What is the function of a question mark?", options: ["To end a statement", "To show a question", "To show strong feeling", "To separate phrases"], answer: "To show a question" },
+                        { question: "Complete the idiom: 'Hit the ______.' (Meaning to go to bed)", options: ["Ball", "Books", "Sack", "Road"], answer: "Sack" },
+                        { question: "What part of speech names a person, place, thing, or idea?", options: ["Verb", "Adjective", "Noun", "Adverb"], answer: "Noun" },
+                        { question: "What is the plural of 'deer'?", options: ["Deers", "Deer", "Deer's", "Deeres"], answer: "Deer" },
+                        { question: "What is a synonym for 'sad'?", options: ["Happy", "Miserable", "Excited", "Joyful"], answer: "Miserable" },
+                        { question: "Identify the preposition in the sentence: 'The book is on the table.'", options: ["Book", "Is", "On", "Table"], answer: "On" },
+                        { question: "What is the purpose of a topic sentence in a paragraph?", options: ["To confuse the reader", "To introduce the main idea", "To list facts", "To end the paragraph"], answer: "To introduce the main idea" },
+                        { question: "Correct the sentence: 'She likes to eat apples, bananas and oranges.'", options: ["She likes to eat apples bananas and oranges.", "She likes to eat apples, bananas, and oranges.", "She likes to eat apples; bananas; and oranges.", "She likes to eat apples bananas, and oranges."], answer: "She likes to eat apples, bananas, and oranges." },
+                        { question: "What is the past participle of 'see'?", options: ["See", "Saw", "Seeing", "Seen"], answer: "Seen" },
+                        { question: "Name a common noun that is also a verb.", options: ["Table", "Chair", "Run", "Book"], answer: "Run" },
+                        { question: "What is the purpose of an apostrophe in a contraction (e.g., 'don't')?", options: ["To show possession", "To show a plural", "To show missing letters", "To end a sentence"], answer: "To show missing letters" },
+                        { question: "Complete the idiom: 'Piece of ______.' (Meaning very easy)", options: ["Cake", "Pie", "Bread", "Candy"], answer: "Cake" },
+                        { question: "What part of speech describes a verb, an adjective, or another adverb?", options: ["Noun", "Verb", "Adjective", "Adverb"], answer: "Adverb" },
+                        { question: "What is the plural of 'person'?", options: ["Persons", "People", "Person's", "Peoples"], answer: "People" },
+                        { question: "What is an antonym for 'begin'?", options: ["Start", "Continue", "End", "Launch"], answer: "End" },
+                        { question: "Identify the indefinite pronoun: 'Everyone enjoyed the party.'", options: ["Everyone", "Enjoyed", "Party", "The"], answer: "Everyone" },
+                        { question: "What is the past participle of 'take'?", options: ["Take", "Took", "Taking", "Taken"], answer: "Taken" },
+                        { question: "What is a group of bees called?", options: ["Colony", "Swarm", "Hive", "Nest"], answer: "Swarm" },
+                        { question: "What is a synonym for 'small'?", options: ["Big", "Tiny", "Large", "Huge"], answer: "Tiny" },
+                        { question: "What is the function of a period at the end of a sentence?", options: ["To ask a question", "To show excitement", "To end a statement", "To separate ideas"], answer: "To end a statement" },
+                        { question: "Complete the idiom: 'Break a ______!' (Meaning good luck)", options: ["Bone", "Leg", "Arm", "Heart"], answer: "Leg" },
+                        { question: "What part of speech connects words, phrases, or clauses?", options: ["Noun", "Verb", "Adjective", "Conjunction"], answer: "Conjunction" },
+                        { question: "What is the plural of 'sheep'?", options: ["Sheeps", "Sheep", "Sheep's", "Sheepe"], answer: "Sheep" },
+                        { question: "What is an antonym for 'polite'?", options: ["Kind", "Rude", "Gentle", "Courteous"], answer: "Rude" },
+                        { question: "Identify the direct object in: 'She read the book.'", options: ["She", "Read", "The", "Book"], answer: "Book" },
+                        { question: "What is the past participle of 'eat'?", options: ["Eat", "Ate", "Eating", "Eaten"], answer: "Eaten" },
+                        { question: "What is a group of fish called?", options: ["Flock", "Herd", "School", "Pack"], answer: "School" },
+                        { question: "What is a synonym for 'smart'?", options: ["Dull", "Clever", "Silly", "Stupid"], answer: "Clever" },
+                        { question: "What is the function of an exclamation mark?", options: ["To ask a question", "To end a statement", "To show strong feeling", "To separate items"], answer: "To show strong feeling" },
+                        { question: "Complete the idiom: 'Under the ______.' (Meaning feeling unwell)", options: ["Sun", "Weather", "Moon", "Stars"], answer: "Weather" },
+                        { question: "What part of speech is 'running' in 'The running dog chased the cat'?", options: ["Noun", "Verb", "Adjective", "Adverb"], answer: "Adjective" },
+                        { question: "What is the plural of 'mouse'?", options: ["Mouses", "Mice", "Mouse's", "Moose"], answer: "Mice" }
+                    ]
+                },
+                {
+                    name: "English for 3rd Grade",
+                    id: "grade3",
+                    questions: [
+                        { question: "Identify the noun in the sentence: 'The cat slept soundly.'", options: ["The", "Cat", "Slept", "Soundly"], answer: "Cat" },
+                        { question: "What is a predicate in a sentence?", options: ["The naming part", "The doing part", "The part that describes a noun", "The part that tells when something happens"], answer: "The doing part" },
+                        { question: "What is a verb that shows action?", options: ["Linking verb", "Helping verb", "Action verb", "Modal verb"], answer: "Action verb" },
+                        { question: "What is the difference between 'their' and 'there'?", options: ["Both mean belonging", "Both mean a place", "Their shows possession, there refers to a place", "There shows possession, their refers to a place"], answer: "Their shows possession, there refers to a place" },
+                        { question: "Identify the adverb in the sentence: 'He ran quickly to the finish line.'", options: ["He", "Ran", "Quickly", "Line"], answer: "Quickly" },
+                        { question: "What is an idiom?", options: ["A word that describes a noun", "A phrase whose meaning cannot be understood from the ordinary meaning of its words", "A word that shows action", "A sentence that asks a question"], answer: "A phrase whose meaning cannot be understood from the ordinary meaning of its words" },
+                        { question: "What is the comparative form of 'good'?", options: ["Gooder", "Best", "Better", "More good"], answer: "Better" },
+                        { question: "What are the three parts of a complete sentence?", options: ["Noun, verb, adjective", "Subject, verb, and a complete thought", "Adverb, preposition, conjunction", "Question, answer, feedback"], answer: "Subject, verb, and a complete thought" },
+                        { question: "What is the purpose of quotation marks?", options: ["To show excitement", "To show a question", "To show direct speech or titles", "To separate items in a list"], answer: "To show direct speech or titles" },
+                        { question: "What is a paragraph?", options: ["A single sentence", "A group of related sentences that discuss one main idea", "A list of words", "A single word"], answer: "A group of related sentences that discuss one main idea" },
+                        { question: "Identify the subject in: 'The tall girl sang a song.'", options: ["Tall", "Girl", "Sang", "Song"], answer: "The tall girl" },
+                        { question: "What is the superlative form of 'big'?", options: ["Bigger", "Biggest", "More big", "Most big"], answer: "Biggest" },
+                        { question: "What is a synonym for 'amazing'?", options: ["Bad", "Ordinary", "Wonderful", "Average"], answer: "Wonderful" },
+                        { question: "Which word is a preposition: 'and', 'jump', 'under', 'blue'?", options: ["And", "Jump", "Under", "Blue"], answer: "Under" },
+                        { question: "What is a simile?", options: ["A comparison not using 'like' or 'as'", "An exaggeration", "A comparison using 'like' or 'as'", "Giving human qualities to objects"], answer: "A comparison using 'like' or 'as'" },
+                        { question: "Correct the sentence: 'I seen him yesterday.'", options: ["I see him yesterday.", "I saw him yesterday.", "I had seen him yesterday.", "I am seeing him yesterday."], answer: "I saw him yesterday." },
+                        { question: "What is a common noun that refers to a group of things?", options: ["Table", "School (of fish)", "London", "Happiness"], answer: "School (of fish)" },
+                        { question: "What is the purpose of a hyphen?", options: ["To end a sentence", "To join words or parts of words", "To show excitement", "To list items"], answer: "To join words or parts of words" },
+                        { question: "Complete the idiom: 'Bite the ______.' (Meaning to accept a difficult situation)", options: ["Hand", "Bullet", "Tongue", "Dust"], answer: "Bullet" },
+                        { question: "What is a complex sentence?", options: ["A sentence with one independent clause", "A sentence with two independent clauses", "A sentence with an independent and at least one dependent clause", "A sentence that is very long"], answer: "A sentence with an independent and at least one dependent clause" },
+                        { question: "Identify the direct object in: 'The chef cooked a delicious meal.'", options: ["The chef", "Cooked", "Delicious", "A delicious meal"], answer: "A delicious meal" },
+                        { question: "What is the past participle of 'break'?", options: ["Break", "Broke", "Breaking", "Broken"], answer: "Broken" },
+                        { question: "What is an antonym for 'ancient'?", options: ["Old", "Historic", "Modern", "Classic"], answer: "Modern" },
+                        { question: "Which word is a subordinating conjunction: 'and', 'but', 'because', 'or'?", options: ["And", "But", "Because", "Or"], answer: "Because" },
+                        { question: "What is personification?", options: ["Giving human qualities to animals", "Giving human qualities to inanimate objects or abstract ideas", "Comparing two unlike things", "An exaggeration"], answer: "Giving human qualities to inanimate objects or abstract ideas" },
+                        { question: "Correct the sentence: 'Every one of the students were happy.'", options: ["Every one of the students was happy.", "Every one of the students is happy.", "All of the students were happy.", "Every one of the student were happy."], answer: "Every one of the students was happy." },
+                        { question: "What is the past participle of 'choose'?", options: ["Choose", "Chose", "Choosing", "Chosen"], answer: "Chosen" },
+                        { question: "What is the difference between a fact and an opinion?", options: ["A fact is what someone believes, an opinion can be proven", "A fact can be proven, an opinion is what someone believes", "Both can be proven", "Neither can be proven"], answer: "A fact can be proven, an opinion is what someone believes" },
+                        { question: "What is the purpose of an exclamation mark?", options: ["To end a question", "To show strong emotion or emphasis", "To separate ideas", "To introduce a list"], answer: "To show strong emotion or emphasis" },
+                        { question: "Complete the idiom: 'Spill the ______.' (Meaning to reveal a secret)", options: ["Beans", "Water", "Milk", "Juice"], answer: "Beans" },
+                        { question: "What is the passive voice?", options: ["When the subject performs the action", "When the subject receives the action", "When there is no subject", "When the verb is missing"], answer: "When the subject receives the action" },
+                        { question: "Identify the independent clause: 'She smiled when he waved.'", options: ["When he waved", "She smiled", "He waved", "Smiled when he waved"], answer: "She smiled" },
+                        { question: "What is the plural of 'analysis'?", options: ["Analysis", "Analyses", "Analysis's", "Analyzes"], answer: "Analyses" },
+                        { question: "What is an antonym for 'courageous'?", options: ["Brave", "Fearful", "Bold", "Strong"], answer: "Fearful" },
+                        { question: "Which word is an interjection: 'Oh!', 'run', 'blue', 'quickly'?", options: ["Run", "Blue", "Oh!", "Quickly"], answer: "Oh!" },
+                        { question: "What is the past participle of 'drive'?", options: ["Drive", "Drove", "Driving", "Driven"], answer: "Driven" },
+                        { question: "What is a biography?", options: ["A fictional story", "A story about someone's life written by another person", "A story about someone's life written by themselves", "A historical document"], answer: "A story about someone's life written by another person" },
+                        { question: "What is the purpose of a colon?", options: ["To end a sentence", "To introduce a list or explanation", "To separate items in a list", "To show possession"], answer: "To introduce a list or explanation" },
+                        { question: "Complete the idiom: 'Cost an arm and a ______.' (Meaning very expensive)", options: ["Leg", "Hand", "Foot", "Head"], answer: "Leg" },
+                        { question: "What is a simple sentence?", options: ["A sentence with two independent clauses", "A sentence with one independent clause", "A sentence with a dependent clause", "A very short sentence"], answer: "A sentence with one independent clause" },
+                        { question: "Identify the compound subject: 'John and Mary went to the park.'", options: ["John", "Mary", "John and Mary", "Went"], answer: "John and Mary" },
+                        { question: "What is the past participle of 'know'?", options: ["Know", "Knew", "Knowing", "Known"], answer: "Known" },
+                        { question: "What is an antonym for 'generous'?", options: ["Kind", "Selfish", "Giving", "Friendly"], answer: "Selfish" },
+                        { question: "Which type of sentence gives a command?", options: ["Declarative", "Interrogative", "Imperative", "Exclamatory"], answer: "Imperative" },
+                        { question: "What is the past participle of 'begin'?", options: ["Begin", "Began", "Beginning", "Begun"], answer: "Begun" },
+                        { question: "What is an autobiography?", options: ["A fictional story", "A story about someone's life written by another person", "A story about someone's life written by themselves", "A historical document"], answer: "A story about someone's life written by themselves" },
+                        { question: "What is the purpose of a semicolon?", options: ["To end a sentence", "To join two independent clauses closely related in meaning", "To introduce a list", "To show possession"], answer: "To join two independent clauses closely related in meaning" },
+                        { question: "Complete the idiom: 'The ball is in your ______.' (Meaning it's your turn to act)", options: ["Hand", "Court", "Pocket", "Field"], answer: "Court" },
+                        { question: "What is the plural of 'criterion'?", options: ["Criterions", "Criteria", "Criterion's", "Criterias"], answer: "Criteria" },
+                        { question: "What is the difference between affect and effect?", options: ["Affect is a noun, effect is a verb", "Affect is a verb, effect is a noun", "They are synonyms", "They are antonyms"], answer: "Affect is a verb, effect is a noun" }
+                    ]
+                }
+            ];
+
+            // DOM elements
+            const levelListDiv = document.getElementById('level-list');
+            const quizSectionDiv = document.getElementById('quiz-section');
+            const backButton = document.getElementById('back-button');
+            const levelTitle = document.getElementById('level-title');
+            const questionNumberDisplay = document.getElementById('question-number');
+            const questionDisplay = document.getElementById('question-display');
+            const optionsContainer = document.getElementById('options-container');
+            const submitAnswerButton = document.getElementById('submit-answer');
+            const nextQuestionButton = document.getElementById('next-question');
+            const feedbackDisplay = document.getElementById('feedback-display');
+            const quizCompleteMessage = document.getElementById('quiz-complete-message');
+
+            let currentLevel = null;
+            let currentQuestionIndex = 0;
+            let selectedOption = null;
+
+            // Function to render the list of levels
+            function renderLevels() {
+                levelListDiv.innerHTML = ''; // Clear previous list
+                levels.forEach(level => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-item bg-blue-100 text-blue-800 p-4 rounded-lg cursor-pointer text-xl font-medium shadow-md hover:bg-blue-200';
+                    listItem.textContent = level.name;
+                    listItem.dataset.levelId = level.id; // Store ID for easy lookup
+                    listItem.addEventListener('click', () => showQuiz(level));
+                    levelListDiv.appendChild(listItem);
+                });
+            }
+
+            // Function to show the quiz section for a given level
+            function showQuiz(level, startIndex = 0) {
+                currentLevel = level;
+                currentQuestionIndex = startIndex;
+                levelListDiv.classList.add('hidden'); // Hide level list
+                quizSectionDiv.classList.remove('hidden'); // Show quiz section
+
+                // Reset quiz section state
+                quizCompleteMessage.classList.add('hidden');
+                submitAnswerButton.classList.remove('hidden');
+                nextQuestionButton.classList.add('hidden');
+                optionsContainer.classList.remove('pointer-events-none', 'opacity-50'); // Enable options interaction
+
+                levelTitle.textContent = level.name;
+                displayQuestion(); // Display the first question
+
+                // Save user's current level to Firestore ONLY if Firebase is initialized
+                if (firebaseInitialized) {
+                    saveUserProgress(userId, level.id, currentQuestionIndex);
+                }
+            }
+
+            // Function to display the current question and its options
+            function displayQuestion() {
+                if (currentLevel && currentQuestionIndex < currentLevel.questions.length) {
+                    const q = currentLevel.questions[currentQuestionIndex];
+                    questionNumberDisplay.textContent = `Question ${currentQuestionIndex + 1} of ${currentLevel.questions.length}`;
+                    questionDisplay.textContent = q.question;
+
+                    // Clear previous options
+                    optionsContainer.innerHTML = '';
+                    selectedOption = null; // Reset selected option
+
+                    // Shuffle options before displaying
+                    const shuffledOptions = shuffleArray([...q.options]);
+
+                    // Create and append radio buttons for each option
+                    shuffledOptions.forEach((option, index) => {
+                        const optionDiv = document.createElement('label');
+                        optionDiv.className = 'option-item block text-gray-700 hover:bg-blue-50';
+                        optionDiv.innerHTML = `
+                            <input type="radio" name="quiz_option" value="${option}" class="form-radio h-5 w-5 text-blue-600">
+                            <span class="ml-3 text-lg">${option}</span>
+                        `;
+                        optionsContainer.appendChild(optionDiv);
+
+                        // Add event listener to each radio button to track selection
+                        optionDiv.querySelector('input[type="radio"]').addEventListener('change', (event) => {
+                            selectedOption = event.target.value;
+                            feedbackDisplay.textContent = ''; // Clear feedback when a new option is selected
+                            feedbackDisplay.className = 'text-lg mt-4 font-medium'; // Reset feedback style
+                        });
+                    });
+
+                    feedbackDisplay.textContent = ''; // Clear feedback
+                    feedbackDisplay.className = 'text-lg mt-4 font-medium'; // Reset feedback style
+                    submitAnswerButton.classList.remove('hidden'); // Ensure submit button is visible
+                    nextQuestionButton.classList.add('hidden'); // Ensure next button is hidden
+                    optionsContainer.classList.remove('pointer-events-none', 'opacity-50'); // Re-enable options
+                } else {
+                    // Quiz is complete
+                    quizCompleteMessage.classList.remove('hidden');
+                    questionNumberDisplay.textContent = '';
+                    questionDisplay.textContent = '';
+                    optionsContainer.innerHTML = ''; // Clear options
+                    submitAnswerButton.classList.add('hidden'); // Hide submit
+                    nextQuestionButton.classList.add('hidden'); // Hide next
+                }
+            }
+
+            // Function to handle answer submission
+            submitAnswerButton.addEventListener('click', () => {
+                if (!selectedOption) {
+                    showModal("Please select an answer before submitting.");
+                    return;
+                }
+
+                if (currentLevel && currentQuestionIndex < currentLevel.questions.length) {
+                    const correctAnswer = currentLevel.questions[currentQuestionIndex].answer;
+                    // Normalize answers for comparison (case-insensitive)
+                    if (selectedOption.toLowerCase() === correctAnswer.toLowerCase()) {
+                        feedbackDisplay.textContent = "Correct! Well done!";
+                        feedbackDisplay.className = 'text-lg mt-4 font-medium text-green-600';
+                    } else {
+                        feedbackDisplay.textContent = `Incorrect. The correct answer was "${correctAnswer}".`;
+                        feedbackDisplay.className = 'text-lg mt-4 font-medium text-red-600';
+                    }
+                    submitAnswerButton.classList.add('hidden'); // Hide submit
+                    nextQuestionButton.classList.remove('hidden'); // Show next
+                    optionsContainer.classList.add('pointer-events-none', 'opacity-50'); // Disable options after submission
+                }
+            });
+
+            // Function to move to the next question
+            nextQuestionButton.addEventListener('click', () => {
+                currentQuestionIndex++;
+                displayQuestion(); // Display the next question or quiz complete message
+
+                // Save progress after moving to next question ONLY if Firebase is initialized
+                if (firebaseInitialized && currentLevel) { // Check currentLevel to avoid saving if quiz is complete
+                    saveUserProgress(userId, currentLevel.id, currentQuestionIndex);
+                }
+            });
+
+            // Function to go back to the level list
+            backButton.addEventListener('click', () => {
+                quizSectionDiv.classList.add('hidden'); // Hide quiz section
+                levelListDiv.classList.remove('hidden'); // Show level list
+                quizCompleteMessage.classList.add('hidden'); // Hide quiz complete message
+                optionsContainer.classList.remove('pointer-events-none', 'opacity-50'); // Ensure options are re-enabled
+                currentLevel = null;
+                currentQuestionIndex = 0; // Reset index for next quiz
+            });
+
+            // Initial render of levels
+            renderLevels();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>የሳይንስ ትምህርት ደረጃዎች ጥያቄና መልስ</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a better look and feel */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Ensure it takes full viewport height */
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        .list-item, .button {
+            transition: all 0.2s ease-in-out; /* Smooth transitions for hover effects */
+        }
+        .list-item:hover {
+            transform: translateY(-3px); /* Slight lift on hover */
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+        /* Custom modal for alerts */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e0; /* Light gray border */
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            background-color: #f8fafc; /* Very light blue-gray */
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+            text-align: left;
+        }
+        .option-item:hover {
+            background-color: #e2e8f0; /* Slightly darker on hover */
+            border-color: #93c5fd; /* Blue border on hover */
+        }
+        .option-item input[type="radio"] {
+            margin-right: 1rem;
+            cursor: pointer;
+            accent-color: #3b82f6; /* Blue accent for radio button */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">የሳይንስ ትምህርት ደረጃዎች</h1>
+
+        <!-- Level List Section -->
+        <div id="level-list" class="space-y-4">
+            <!-- List items will be dynamically inserted here by JavaScript -->
+        </div>
+
+        <!-- Quiz Section (initially hidden) -->
+        <div id="quiz-section" class="hidden text-left">
+            <button id="back-button" class="button bg-gray-200 text-gray-700 px-4 py-2 rounded-lg mb-6 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+                ← ወደ ደረጃዎች ተመለስ
+            </button>
+            <p id="level-title" class="text-2xl font-semibold text-blue-700 mb-6"></p>
+            <p id="question-number" class="text-lg text-gray-600 mb-2"></p>
+            <p id="question-display" class="text-xl text-gray-800 mb-6"></p>
+
+            <!-- Options container for multiple choice -->
+            <div id="options-container" class="space-y-3 mb-4">
+                <!-- Multiple choice options will be inserted here by JavaScript -->
+            </div>
+
+            <button id="submit-answer" class="button bg-blue-600 text-white px-6 py-3 rounded-lg w-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                መልስ አስገባ
+            </button>
+            <button id="next-question" class="button bg-green-500 text-white px-6 py-3 rounded-lg w-full mt-4 hidden hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">
+                ቀጣይ ጥያቄ
+            </button>
+            <p id="feedback-display" class="text-lg mt-4 font-medium"></p>
+            <p id="quiz-complete-message" class="text-2xl text-green-700 font-bold mt-8 hidden">
+                ጥያቄዎቹ ተጠናቀዋል! በጣም ጥሩ!
+            </p>
+        </div>
+    </div>
+
+    <!-- Custom Modal for Messages -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="modal-message" class="text-lg text-gray-800"></p>
+            <button id="modal-ok-button" class="button bg-blue-600 text-white px-4 py-2 rounded-lg mt-4 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">እሺ</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration and initialization (MANDATORY in Canvas, optional for local run without persistence)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use a dummy for local execution
+        const firebaseConfigRaw = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        let firebaseConfig = {};
+        let firebaseEnabled = false;
+
+        // Attempt to parse firebaseConfig. If it's an empty object, Firebase will not be initialized.
+        try {
+            firebaseConfig = JSON.parse(firebaseConfigRaw);
+            // Check if the parsed config actually has keys (meaning it's not just an empty object from Canvas default)
+            if (Object.keys(firebaseConfig).length > 0) {
+                firebaseEnabled = true;
+            } else {
+                console.warn("No Firebase configuration provided or config is empty. Persistence will be disabled.");
+            }
+        } catch (e) {
+            console.error("Error parsing Firebase config:", e);
+            console.warn("Firebase will be disabled due to config error. Persistence will not work.");
+        }
+
+        let app, db, auth, userId;
+        let firebaseInitialized = false; // Flag to track successful Firebase initialization
+
+        // Function to show custom modal
+        function showModal(message) {
+            const modal = document.getElementById('myModal');
+            const modalMessage = document.getElementById('modal-message');
+            modalMessage.textContent = message;
+            modal.style.display = 'flex'; // Use flex to center
+        }
+
+        // Helper function to shuffle an array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Firestore: Save user's last selected level and question index
+        async function saveUserProgress(uid, levelId, questionIndex) {
+            if (!firebaseInitialized || !db) { // Check firebaseInitialized
+                console.warn("Firebase is not initialized. Progress will not be saved.");
+                return;
+            }
+            const userDocRef = doc(db, `artifacts/${appId}/users/${uid}/progress`, 'lastQuizState');
+            try {
+                await setDoc(userDocRef, {
+                    lastLevelId: levelId,
+                    lastQuestionIndex: questionIndex
+                }, { merge: true });
+                console.log(`User ${uid} progress saved: Level ${levelId}, Question ${questionIndex}`);
+            } catch (e) {
+                console.error("Error saving document: ", e);
+                showModal("ሂደትን ማስቀመጥ አልተቻለም፡፡ እባክዎ የበይነመረብ ግንኙነትዎን ያረጋግጡ።");
+            }
+        }
+
+        // Firestore: Load user's last selected level and question index and resume
+        async function loadUserProgress(uid) {
+            if (!firebaseInitialized || !db) { // Check firebaseInitialized
+                console.warn("Firebase is not initialized. Progress will not be loaded.");
+                return;
+            }
+            const userDocRef = doc(db, `artifacts/${appId}/users/${uid}/progress`, 'lastQuizState');
+            try {
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const lastLevelId = data.lastLevelId;
+                    const lastQuestionIndex = data.lastQuestionIndex || 0; // Default to 0 if not set
+
+                    const lastLevel = levels.find(level => level.id === lastLevelId);
+                    if (lastLevel) {
+                        // Check if the saved index is within bounds of the current questions for that level
+                        const effectiveIndex = Math.min(lastQuestionIndex, lastLevel.questions.length);
+                        if (effectiveIndex < lastLevel.questions.length) {
+                            showModal(`እንኳን ደህና መጡ! የ${lastLevel.name} ጥያቄ ${effectiveIndex + 1} ከቀጠሉበት ይቀጥሉ።`);
+                            showQuiz(lastLevel, effectiveIndex);
+                        } else {
+                            // If saved index is past the end, start at beginning of that level
+                            showModal(`እንኳን ደህና መጡ! የ${lastLevel.name} ጥያቄዎችን አጠናቅቀዋል። እንደገና እንጀምር።`);
+                            showQuiz(lastLevel, 0);
+                        }
+                        console.log(`User ${uid} last quiz state loaded: Level ${lastLevelId}, Question ${effectiveIndex}`);
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading document: ", e);
+                showModal("የቀደመውን ሂደት መጫን አልተቻለም።");
+            }
+        }
+
+
+        // Get modal elements
+        const modal = document.getElementById('myModal');
+        const closeButton = document.querySelector('.close-button');
+        const modalOkButton = document.getElementById('modal-ok-button');
+
+        // Close modal when close button is clicked
+        closeButton.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when OK button is clicked
+        modalOkButton.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (firebaseEnabled) {
+                try {
+                    // Initialize Firebase
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    // Sign in anonymously or with custom token (MANDATORY for persistence)
+                    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    // Get the user ID after authentication
+                    userId = auth.currentUser?.uid || crypto.randomUUID();
+                    console.log("Firebase initialized. User ID:", userId);
+                    firebaseInitialized = true; // Set flag to true on success
+
+                } catch (error) {
+                    console.error("Error initializing Firebase services:", error);
+                    showModal("የFirebase አገልግሎቶችን ማስጀመር አልተሳካም። መተግበሪያው ያለ ሂደት ማስቀመጥ ይሰራል። ቋሚነትን ማንቃት ከፈለጉ፣ የFirebase ፕሮጀክትዎ በትክክል መዋቀሩን ያረጋግጡ።");
+                    firebaseInitialized = false; // Ensure flag is false on error
+                }
+            } else {
+                console.log("Firebase is not enabled (no configuration found). The app will run without saving/loading progress.");
+            }
+
+            // Always initialize the app logic, regardless of Firebase status
+            initApp();
+
+            // Load user progress ONLY if Firebase was successfully initialized
+            if (firebaseInitialized) {
+                loadUserProgress(userId);
+            }
+        });
+
+        function initApp() {
+            // Data structure for levels and questions
+            const levels = [
+                {
+                    name: "የመዋዕለ ሕፃናት ሳይንስ",
+                    id: "kindergarten_science",
+                    questions: [
+                        { question: "በቀን ብርሃን የሚሰጠን ምንድን ነው?", options: ["ጨረቃ", "ኮከብ", "ፀሐይ", "መብራት"], answer: "ፀሐይ" },
+                        { question: "ውሃ የምንጠጣው በምን ነው?", options: ["እግር", "አፍ", "ጆሮ", "አፍንጫ"], answer: "አፍ" },
+                        { question: "የትኛው እንስሳ ነው የሚበር?", options: ["ድመት", "ውሻ", "ወፍ", "ዓሳ"], answer: "ወፍ" },
+                        { question: "ዝናብ ከምን ይወርዳል?", options: ["ፀሐይ", "ደመና", "ዛፍ", "ምድር"], answer: "ደመና" },
+                        { question: "ለመተንፈስ የምንጠቀመው የትኛውን የሰውነት ክፍል ነው?", options: ["ዓይን", "ጆሮ", "አፍንጫ", "እግር"], answer: "አፍንጫ" },
+                        { question: "የትኛው ፍሬ ነው ቢጫ?", options: ["ፖም", "ሙዝ", "ወይን", "ቼሪ"], answer: "ሙዝ" },
+                        { question: "በሌሊት ብርሃን የሚሰጠን ምንድን ነው?", options: ["ፀሐይ", "ጨረቃ", "መብራት", "እሳት"], answer: "ጨረቃ" },
+                        { question: "የቱ እንስሳ ነው የሚዋኝ?", options: ["ድመት", "ውሻ", "ዓሳ", "ወፍ"], answer: "ዓሳ" },
+                        { question: "ዛፎች እንዲያድጉ ምን ያስፈልጋቸዋል?", options: ["ውሃ", "ምግብ", "ፀሐይ", "ሁሉንም"], answer: "ሁሉንም" },
+                        { question: "ሰማይ የትኛው ቀለም ነው?", options: ["ቀይ", "አረንጓዴ", "ሰማያዊ", "ቢጫ"], answer: "ሰማያዊ" },
+                        { question: "ለመስማት የምንጠቀመው የትኛውን የሰውነት ክፍል ነው?", options: ["ዓይን", "ጆሮ", "አፍ", "አፍንጫ"], answer: "ጆሮ" },
+                        { question: "የቱ አትክልት ነው ብርቱካንማ ቀለም?", options: ["ቲማቲም", "ድንች", "ካሮት", "ጎመን"], answer: "ካሮት" },
+                        { question: "ምድር ክብ ናት ወይስ ጠፍጣፋ?", options: ["ክብ", "ጠፍጣፋ", "አራት ማዕዘን", "ሦስት ማዕዘን"], answer: "ክብ" },
+                        { question: "የትኛው እንስሳ ነው የሚጎርፍ?", options: ["ወፍ", "ዓሳ", "እባብ", "ውሻ"], answer: "እባብ" },
+                        { question: "ለመራመድ የምንጠቀመው የትኛውን የሰውነት ክፍል ነው?", options: ["እጅ", "እግር", "አፍ", "ዓይን"], answer: "እግር" },
+                        { question: "የቱ ምግብ ነው ከወተት የሚሰራ?", options: ["ዳቦ", " አይብ", "ሩዝ", "ፖም"], answer: " አይብ" },
+                        { question: "በየትኛው የሰውነት ክፍል ነው የምናየው?", options: ["ጆሮ", "አፍ", "ዓይን", "አፍንጫ"], answer: "ዓይን" },
+                        { question: "የትኛው እንስሳ ነው ቤት ውስጥ የምናስቀምጠው?", options: ["አንበሳ", "ዝሆን", "ድመት", "ነብር"], answer: "ድመት" },
+                        { question: "የቱ ፈሳሽ ነው የምንጠጣው?", options: ["ወተት", "ዘይት", "አሸዋ", "ድንጋይ"], answer: "ወተት" },
+                        { question: "አበቦች እንዲያድጉ ምን ያስፈልጋቸዋል?", options: ["ውሃ", "ፀሐይ", "አፈር", "ሁሉንም"], answer: "ሁሉንም" },
+                        { question: "የቱ ጋዝ ነው የምንተነፍሰው?", options: ["ካርቦን ዳይኦክሳይድ", "ናይትሮጅን", "ኦክስጅን", "ሃይድሮጅን"], answer: "ኦክስጅን" },
+                        { question: "የትኛው የሰውነት ክፍል ነው ለምግብ መፈጨት የሚጠቅመው?", options: ["ልብ", "ሳንባ", "ሆድ", "አንጎል"], answer: "ሆድ" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል?", options: ["ላም", "ውሻ", "ዶሮ", "ድመት"], answer: "ዶሮ" },
+                        { question: "ቀስተ ደመና ስንት ቀለም አለው?", options: ["5", "6", "7", "8"], answer: "7" },
+                        { question: "የትኛው ፕላኔት ነው ትልቁ?", options: ["ምድር", "ማርስ", "ጁፒተር", "ሜርኩሪ"], answer: "ጁፒተር" },
+                        { question: "ፀሐይ የትኛው የሰማይ አካል ነው?", options: ["ፕላኔት", "ኮከብ", "ጨረቃ", "ኮሜት"], answer: "ኮከብ" },
+                        { question: "የቱ ነገር ነው የሚንሳፈፍ?", options: ["ድንጋይ", "ብረት", "እንጨት", "ሳንቲም"], answer: "እንጨት" },
+                        { question: "ሰውነት ምን ያስፈልገዋል?", options: ["ምግብ", "ውሃ", "እንቅልፍ", "ሁሉንም"], answer: "ሁሉንም" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምንቀሳቀስበት?", options: ["አጥንት", "ፀጉር", "ምስማር", "ጥርሶች"], answer: "አጥንት" },
+                        { question: "የቱ እንስሳ ነው በውሃ ውስጥ የሚኖረው?", options: ["ድብ", "ቀበሮ", "ዓሳ", "ተኩላ"], answer: "ዓሳ" },
+                        { question: "የቱ መሣሪያ ነው ከዋክብትን ለመመልከት የሚያገለግለው?", options: ["ማይክሮስኮፕ", "ቴሌስኮፕ", "ቢኖኩላር", "ማግኒፊየር"], answer: "ቴሌስኮፕ" },
+                        { question: "የቱ የአየር ሁኔታ ነው ቀዝቃዛ?", options: ["ፀሐያማ", "ዝናባማ", "በረዷማ", "ነፋሻማ"], answer: "በረዷማ" },
+                        { question: "የቱ እንስሳ ነው ወተት የሚሰጠን?", options: ["ዶሮ", "በግ", "ላም", "ፍየል"], answer: "ላም" },
+                        { question: "ለመስማት የምንጠቀምበት የሰውነት ክፍል ምንድን ነው?", options: ["አፍ", "ጆሮ", "ዓይን", "አፍንጫ"], answer: "ጆሮ" },
+                        { question: "የቱ አትክልት ነው ከመሬት በታች የሚያድገው?", options: ["ፖም", "ካሮት", "ብርቱካን", "ሙዝ"], answer: "ካሮት" },
+                        { question: "አረንጓዴ ተክሎች ምን ያደርጋሉ?", options: ["ምግብ ይበላሉ", "ኦክስጅን ይሰጣሉ", "ይሮጣሉ", "ይዋኛሉ"], answer: "ኦክስጅን ይሰጣሉ" },
+                        { question: "የቱ መብራት ነው በሌሊት የምንጠቀምበት?", options: ["ፀሐይ", "ጨረቃ", "መብራት", "ሻማ"], answer: "ሻማ" },
+                        { question: "የቱ እንስሳ ነው የሚበር እና እንቁላል የሚጥል?", options: ["ድመት", "ውሻ", "ወፍ", "ዓሳ"], answer: "ወፍ" },
+                        { question: "ሰውነት ምን አይነት ፈሳሽ ነው የሚያመነጨው?", options: ["ደም", "ወተት", "ውሃ", "ላብ"], answer: "ላብ" },
+                        { question: "የቱ የሰማይ አካል ነው በሌሊት ብዙ ጊዜ የምናየው?", options: ["ፀሐይ", "ጨረቃ", "ኮከብ", "ደመና"], answer: "ጨረቃ" },
+                        { question: "የቱ መጓጓዣ ነው በውሃ ላይ የሚጓዝ?", options: ["መኪና", "ባቡር", "ጀልባ", "አውሮፕላን"], answer: "ጀልባ" },
+                        { question: "ምን አይነት ምግቦች ናቸው ለሰውነት ሀይል የሚሰጡት?", options: ["ከረሜላ", "ፍራፍሬዎች", "አትክልቶች", "ሁለቱም"], answer: "ፍራፍሬዎች" },
+                        { question: "የቱ እንስሳ ነው ጮክ ብሎ የሚጮህ?", options: ["ድመት", "ውሻ", "አንበሳ", "ወፍ"], answer: "አንበሳ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምናስብበት?", options: ["ልብ", "ሆድ", "አንጎል", "እጅ"], answer: "አንጎል" },
+                        { question: "የቱ ነገር ነው ከእንጨት የሚሰራ?", options: ["ብርጭቆ", "መጽሐፍ", "ጠረጴዛ", "ብረት"], answer: "ጠረጴዛ" },
+                        { question: "የቱ እንስሳ ነው ወተት የማይሰጥ?", options: ["ላም", "ፍየል", "ዶሮ", "በግ"], answer: "ዶሮ" },
+                        { question: "የቱ ፕላኔት ነው ከፀሐይ በጣም የራቀ?", options: ["ምድር", "ማርስ", "ኔፕቱን", "ቬነስ"], answer: "ኔፕቱን" },
+                        { question: "የቱ ነገር ነው የሚንሳፈፍ እና የማይሰምጥ?", options: ["ድንጋይ", "ወረቀት", "ሳንቲም", "ብረት"], answer: "ወረቀት" },
+                        { question: "የቱ እንስሳ ነው በቤታችን የሚኖረው እና ወተት የምንሰጠው?", options: ["ወፍ", "ዓሳ", "ድመት", "ውሻ"], answer: "ድመት" },
+                        { question: "የቱ መሣሪያ ነው ትንሽ ነገሮችን ለማየት የሚያገለግለው?", options: ["ቴሌስኮፕ", "ማይክሮስኮፕ", "ቢኖኩላር", "መነጽር"], answer: "ማይክሮስኮፕ" }
+                    ]
+                },
+                {
+                    name: "የ KG 1 ሳይንስ",
+                    id: "kg1_science",
+                    questions: [
+                        { question: "የፀሐይ ስርዓት ስንት ፕላኔቶች አሉት?", options: ["7", "8", "9", "10"], answer: "8" },
+                        { question: "ውሃ ከጠንካራ ወደ ፈሳሽነት ሲቀየር ምን ይባላል?", options: ["መፍላት", "መቅለጥ", "መቀዝቀዝ", "ማጠንከር"], answer: "መቅለጥ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ደም የሚፈስሰው?", options: ["ሳንባ", "ልብ", "ሆድ", "አንጎል"], answer: "ልብ" },
+                        { question: "ተክሎች ምግብ የሚሰሩበት ሂደት ምን ይባላል?", options: ["ትንፋሽ", "ፎቶሲንተሲስ", "መፈጨት", "መብሰል"], answer: "ፎቶሲንተሲስ" },
+                        { question: "የቱ እንስሳ ነው በክረምት የሚተኛ (hibernates)?", options: ["ውሻ", "ድመት", "ድብ", "ወፍ"], answer: "ድብ" },
+                        { question: "የቱ ፕላኔት ነው 'ቀይ ፕላኔት' የሚባለው?", options: ["ምድር", "ቬነስ", "ማርስ", "ጁፒተር"], answer: "ማርስ" },
+                        { question: "ምድር በፀሐይ ዙሪያ ለመዞር ስንት ጊዜ ይወስድባታል?", options: ["አንድ ቀን", "አንድ ወር", "አንድ ዓመት", "አንድ ሰዓት"], answer: "አንድ ዓመት" },
+                        { question: "የቱ ጋዝ ነው እሳት እንዲነድድ የሚያደርገው?", options: ["ካርቦን ዳይኦክሳይድ", "ናይትሮጅን", "ኦክስጅን", "ሃይድሮጅን"], answer: "ኦክስጅን" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል እና የሚበር?", options: ["ላም", "ውሻ", "ዶሮ", "ወፍ"], answer: "ወፍ" },
+                        { question: "ሰውነትን ከበሽታ የሚከላከል የሰውነት ክፍል ምንድን ነው?", options: ["ቆዳ", "ፀጉር", "ምስማር", "አጥንት"], answer: "ቆዳ" },
+                        { question: "የቱ እንስሳ ነው በውሃ ውስጥም ሆነ በመሬት ላይ የሚኖር?", options: ["ዓሳ", "ወፍ", "እንቁራሪት", "ድመት"], answer: "እንቁራሪት" },
+                        { question: "የቱ መሣሪያ ነው ድምፅን ከሩቅ ለማሰማት የሚያገለግለው?", options: ["ቴሌስኮፕ", "ማይክሮስኮፕ", "ሜጋፎን", "ራዲዮ"], answer: "ሜጋፎን" },
+                        { question: "የቱ የሰማይ አካል ነው በሌሊት የሚያበራው ነገር ግን የራሱ ብርሃን የሌለው?", options: ["ፀሐይ", "ኮከብ", "ጨረቃ", "ኮሜት"], answer: "ጨረቃ" },
+                        { question: "ውሃ በ 0 ዲግሪ ሴልሲየስ ምን ይሆናል?", options: ["ይፈላ", "ይቀዘቅዛል", "ይቀልጣል", "ይተናል"], answer: "ይቀዘቅዛል" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምንራመድበት እና የምንሮጥበት?", options: ["እጅ", "እግር", "አፍ", "ዓይን"], answer: "እግር" },
+                        { question: "የቱ እንስሳ ነው በጣም ቀርፋፋ?", options: ["አንበሳ", "ቺታ", "ቀንድ አውጣ", "ጥንቸል"], answer: "ቀንድ አውጣ" },
+                        { question: "የቱ ነገር ነው ከሸክላ የሚሰራ?", options: ["ወረቀት", "ብርጭቆ", "መጽሐፍ", "ማሰሮ"], answer: "ማሰሮ" },
+                        { question: "የቱ የሰማይ አካል ነው በዙሪያችን የሚዞረው?", options: ["ፀሐይ", "ምድር", "ጨረቃ", "ማርስ"], answer: "ጨረቃ" },
+                        { question: "የቱ የኃይል ምንጭ ነው ንጹህ?", options: ["ከሰል", "ነዳጅ", "ፀሐይ", "ጋዝ"], answer: "ፀሐይ" },
+                        { question: "አንድ ተክል ስንት ዋና ዋና ክፍሎች አሉት?", options: ["2", "3", "4", "5"], answer: "3" },
+                        { question: "የቱ እንስሳ ነው ወተት የሚሰጥ እና እንቁላል የማይጥል?", options: ["ዶሮ", "ወፍ", "ላም", "ዓሳ"], answer: "ላም" },
+                        { question: "የቱ ፈሳሽ ነው በሰውነት ውስጥ ኦክስጅንን የሚያጓጉዘው?", options: ["ውሃ", "ወተት", "ደም", "ጁስ"], answer: "ደም" },
+                        { question: "የቱ ፕላኔት ነው ለህይወት ተስማሚ የሆነው?", options: ["ማርስ", "ቬነስ", "ምድር", "ጁፒተር"], answer: "ምድር" },
+                        { question: "ዝናብ የሚዘንበው ከምን ነው?", options: ["ፀሐይ", "ደመና", "ውሃ", "ዛፍ"], answer: "ደመና" },
+                        { question: "ለመተንፈስ የምንጠቀመው ጋዝ ምንድን ነው?", options: ["ካርቦን ዳይኦክሳይድ", "ኦክስጅን", "ናይትሮጅን", "ሃይድሮጅን"], answer: "ኦክስጅን" },
+                        { question: "የቱ እንስሳ ነው በዛፍ ላይ የሚኖረው?", options: ["ዓሳ", "ውሻ", "ዝንጀሮ", "ድመት"], answer: "ዝንጀሮ" },
+                        { question: "የቱ የኃይል ምንጭ ነው ከፀሐይ የሚመጣ?", options: ["ነዳጅ", "ከሰል", "የፀሐይ ኃይል", "ጋዝ"], answer: "የፀሐይ ኃይል" },
+                        { question: "የቱ የአየር ሁኔታ ነው በጣም ሞቃት?", options: ["ዝናባማ", "በረዷማ", "ፀሐያማ", "ነፋሻማ"], answer: "ፀሐያማ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ምግብን የሚያፈርስ?", options: ["ልብ", "ሳንባ", "ሆድ", "አንጎል"], answer: "ሆድ" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል እና የሚራመድ?", options: ["ዓሳ", "ዶሮ", "ወፍ", "ውሻ"], answer: "ዶሮ" },
+                        { question: "የቱ መሣሪያ ነው ውሃን ለማሞቅ የሚያገለግለው?", options: ["ፍሪጅ", "ማይክሮዌቭ", "ኬትል", "ቶስተር"], answer: "ኬትል" },
+                        { question: "የትኛው የእፅዋት ክፍል ነው ውሃን ከምድር የሚወስደው?", options: ["ቅጠል", "ግንድ", "ሥር", "አበባ"], answer: "ሥር" },
+                        { question: "የቱ የፕላኔት ክፍል ነው በውሃ የተሸፈነ?", options: ["የብስ", "ውሃ", "ደመና", "አየር"], answer: "ውሃ" },
+                        { question: "የቱ እንስሳ ነው በጣም ፈጣን?", options: ["አንበሳ", "ቀንድ አውጣ", "ቺታ", "ጥንቸል"], answer: "ቺታ" },
+                        { question: "አንድ የጤናማ ምግብ ምሳሌ ስጥ።", options: ["ከረሜላ", "ቺፕስ", "ፖም", "ሶዳ"], answer: "ፖም" },
+                        { question: "የቱ የሰማይ አካል ነው የምድር የተፈጥሮ ሳተላይት?", options: ["ፀሐይ", "ማርስ", "ጨረቃ", "ጁፒተር"], answer: "ጨረቃ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ሀሳብ የምናስብበት?", options: ["ልብ", "ሳንባ", "ሆድ", "አንጎል"], answer: "አንጎል" },
+                        { question: "የቱ እንስሳ ነው ቤት ውስጥ የማይኖር?", options: ["ድመት", "ውሻ", "አንበሳ", "ወፍ"], answer: "አንበሳ" },
+                        { question: "የቱ ነገር ነው የሚሰምጥ?", options: ["እንጨት", "ወረቀት", "ድንጋይ", "ፕላስቲክ"], answer: "ድንጋይ" },
+                        { question: "የቱ የውሃ ሁኔታ ነው ጠንካራ?", options: ["እንፋሎት", "ውሃ", "በረዶ", "ደመና"], answer: "በረዶ" },
+                        { question: "የቱ እንስሳ ነው ክንፍ ያለው ነገር ግን አይበርም?", options: ["ወፍ", "ዶሮ", "ንብ", "ቢራቢሮ"], answer: "ዶሮ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምናፈርስበት?", options: ["አፍ", "አፍንጫ", "ጆሮ", "ዓይን"], answer: "አፍ" },
+                        { question: "የትኛው የኃይል አይነት ነው ከንፋስ የሚመነጨው?", options: ["የፀሐይ ኃይል", "የውሃ ኃይል", "የንፋስ ኃይል", "የጋዝ ኃይል"], answer: "የንፋስ ኃይል" },
+                        { question: "የቱ እንስሳ ነው ወተት የሚሰጥ እና እንቁላል የሚጥል?", options: ["ላም", "ዶሮ", "ዳክዬ", "ዓሳ"], answer: "ዳክዬ" },
+                        { question: "የቱ የሰማይ አካል ነው በሌሊት የሚያብረቀርቅ?", options: ["ፀሐይ", "ጨረቃ", "ኮከብ", "ደመና"], answer: "ኮከብ" },
+                        { question: "የቱ መሣሪያ ነው ውሃ ውስጥ ለመተንፈስ የሚያገለግለው?", options: ["መነጽር", "ስኖርከል", "ስኩባ", "ማይክሮስኮፕ"], answer: "ስኖርከል" },
+                        { question: "አንድ ተክል ምን ያስፈልገዋል?", options: ["ውሃ", "ፀሐይ", "አፈር", "ሁሉም"], answer: "ሁሉም" },
+                        { question: "የቱ እንስሳ ነው ቀስ ብሎ የሚንቀሳቀስ?", options: ["ጥንቸል", "ዔሊ", "ውሻ", "ድመት"], answer: "ዔሊ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ለመስማት የሚያገለግለው?", options: ["ዓይን", "ጆሮ", "አፍንጫ", "አፍ"], answer: "ጆሮ" }
+                    ]
+                },
+                {
+                    name: "የ KG 2 ሳይንስ",
+                    id: "kg2_science",
+                    questions: [
+                        { question: "የቱ ፕላኔት ነው 'ውሃማ ፕላኔት' የሚባለው?", options: ["ማርስ", "ቬነስ", "ምድር", "ጁፒተር"], answer: "ምድር" },
+                        { question: "ውሃ ከፈሳሽ ወደ ጋዝነት ሲቀየር ምን ይባላል?", options: ["መፍላት", "መቅለጥ", "መተን", "መቀዝቀዝ"], answer: "መተን" },
+                        { question: "የቱ የሰውነት ክፍል ነው ምግብን የሚያፈርስ?", options: ["ልብ", "ሳንባ", "ሆድ", "አንጎል"], answer: "ሆድ" },
+                        { question: "የቱ ጋዝ ነው ተክሎች ምግብ ለመስራት የሚጠቀሙበት?", options: ["ኦክስጅን", "ናይትሮጅን", "ካርቦን ዳይኦክሳይድ", "ሃይድሮጅን"], answer: "ካርቦን ዳይኦክሳይድ" },
+                        { question: "የቱ እንስሳ ነው በክረምት የሚተኛ (hibernates)?", options: ["ውሻ", "ድመት", "ድብ", "ወፍ"], answer: "ድብ" },
+                        { question: "የቱ ፕላኔት ነው ከፀሐይ በጣም ቅርብ የሆነው?", options: ["ምድር", "ቬነስ", "ሜርኩሪ", "ማርስ"], answer: "ሜርኩሪ" },
+                        { question: "ጨረቃ በምድር ዙሪያ ለመዞር ስንት ጊዜ ይወስድባታል?", options: ["አንድ ቀን", "አንድ ወር", "አንድ ዓመት", "አንድ ሰዓት"], answer: "አንድ ወር" },
+                        { question: "የቱ ንጥረ ነገር ነው እሳት እንዲነድድ የሚያደርገው?", options: ["ውሃ", "አየር", "ድንጋይ", "አሸዋ"], answer: "አየር" },
+                        { question: "የቱ እንስሳ ነው ወተት የሚሰጥ እና እንቁላል የማይጥል?", options: ["ዶሮ", "ወፍ", "ላም", "ዓሳ"], answer: "ላም" },
+                        { question: "ሰውነትን ከጉዳት የሚከላከል የሰውነት ክፍል ምንድን ነው?", options: ["ፀጉር", "ቆዳ", "ምስማር", "ጥርሶች"], answer: "ቆዳ" },
+                        { question: "የቱ እንስሳ ነው ውሃ ውስጥ የሚኖር እና ክንፍ ያለው?", options: ["ዓሳ", "ወፍ", "ዳክዬ", "እንቁራሪት"], answer: "ዳክዬ" },
+                        { question: "የቱ መሣሪያ ነው ሩቅ ነገሮችን ለማየት የሚያገለግለው?", options: ["ማይክሮስኮፕ", "ቴሌስኮፕ", "ቢኖኩላር", "ማግኒፊየር"], answer: "ቴሌስኮፕ" },
+                        { question: "ፀሐይ ከዋክብት ናት ወይስ ፕላኔት?", options: ["ኮከብ", "ፕላኔት", "ጨረቃ", "ጋላክሲ"], answer: "ኮከብ" },
+                        { question: "ውሃ በ 100 ዲግሪ ሴልሲየስ ምን ይሆናል?", options: ["ይቀዘቅዛል", "ይቀልጣል", "ይተናል", "ይበሰብሳል"], answer: "ይተናል" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምናይበት?", options: ["ጆሮ", "አፍ", "ዓይን", "አፍንጫ"], answer: "ዓይን" },
+                        { question: "የቱ እንስሳ ነው በጣም ትልቅ?", options: ["አንበሳ", "ዝሆን", "ውሻ", "ድመት"], answer: "ዝሆን" },
+                        { question: "የቱ ነገር ነው ከብርጭቆ የሚሰራ?", options: ["ወረቀት", "ጠርሙስ", "መጽሐፍ", "ጠረጴዛ"], answer: "ጠርሙስ" },
+                        { question: "የቱ የሰማይ አካል ነው በፀሐይ ዙሪያ የሚዞረው?", options: ["ጨረቃ", "ምድር", "ኮከብ", "ጋላክሲ"], answer: "ምድር" },
+                        { question: "የቱ የኃይል ምንጭ ነው ከነፋስ የሚመጣ?", options: ["ነዳጅ", "ከሰል", "የንፋስ ኃይል", "ጋዝ"], answer: "የንፋስ ኃይል" },
+                        { question: "አንድ ተክል ስንት ዋና ዋና ክፍሎች አሉት?", options: ["2", "3", "4", "5"], answer: "4" },
+                        { question: "የቱ እንስሳ ነው ስጋ የሚበላ?", options: ["ላም", "በግ", "አንበሳ", "ጥንቸል"], answer: "አንበሳ" },
+                        { question: "የቱ ፈሳሽ ነው ከዝናብ የሚመጣ?", options: ["ወተት", "ጁስ", "ውሃ", "ዘይት"], answer: "ውሃ" },
+                        { question: "የቱ ፕላኔት ነው 'ቀይ ፕላኔት' የሚባለው?", options: ["ምድር", "ቬነስ", "ማርስ", "ጁፒተር"], answer: "ማርስ" },
+                        { question: "የቱ ነገር ነው የምድርን ሙቀት የሚጠብቀው?", options: ["ደመና", "ኦዞን ንብርብር", "አየር", "ውሃ"], answer: "ኦዞን ንብርብር" },
+                        { question: "ለመተንፈስ የምንጠቀመው ጋዝ ምንድን ነው?", options: ["ካርቦን ዳይኦክሳይድ", "ኦክስጅን", "ናይትሮጅን", "ሃይድሮጅን"], answer: "ኦክስጅን" },
+                        { question: "የቱ እንስሳ ነው በውሃ ውስጥ የሚኖር ነገር ግን ዓሳ ያልሆነ?", options: ["ዓሳ", "ዶልፊን", "ወፍ", "ድመት"], answer: "ዶልፊን" },
+                        { question: "የቱ የኃይል ምንጭ ነው ከውሃ የሚመጣ?", options: ["ነዳጅ", "ከሰል", "የውሃ ኃይል", "ጋዝ"], answer: "የውሃ ኃይል" },
+                        { question: "የቱ የአየር ሁኔታ ነው በጣም ቀዝቃዛ?", options: ["ፀሐያማ", "ዝናባማ", "በረዷማ", "ነፋሻማ"], answer: "በረዷማ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ደም የሚፈስሰው?", options: ["ሳንባ", "ልብ", "ሆድ", "አንጎል"], answer: "ልብ" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል እና የሚበር?", options: ["ላም", "ውሻ", "ዶሮ", "ወፍ"], answer: "ወፍ" },
+                        { question: "የቱ መሣሪያ ነው ምግብን ለማብሰል የሚያገለግለው?", options: ["ፍሪጅ", "ማይክሮዌቭ", "ቴሌስኮፕ", "ቶስተር"], answer: "ማይክሮዌቭ" },
+                        { question: "የቱ የእፅዋት ክፍል ነው ምግብ የሚያከማች?", options: ["ቅጠል", "ግንድ", "ሥር", "አበባ"], answer: "ሥር" },
+                        { question: "የቱ የፕላኔት ክፍል ነው በአየር የተከበበ?", options: ["የብስ", "ውሃ", "ደመና", "ከባቢ አየር"], answer: "ከባቢ አየር" },
+                        { question: "የቱ እንስሳ ነው በዝግታ የሚንቀሳቀስ ነገር ግን መሬት ላይ የሚኖር?", options: ["ቺታ", "ቀንድ አውጣ", "ጥንቸል", "ውሻ"], answer: "ቀንድ አውጣ" },
+                        { question: "አንድ የፕሮቲን ምግብ ምሳሌ ስጥ።", options: ["ፖም", "ዳቦ", "እንቁላል", "ሩዝ"], answer: "እንቁላል" },
+                        { question: "የቱ የሰማይ አካል ነው ምድር በዙሪያው የምትዞረው?", options: ["ጨረቃ", "ማርስ", "ፀሐይ", "ጁፒተር"], answer: "ፀሐይ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምንሰማበት?", options: ["ልብ", "ሳንባ", "ጆሮ", "አንጎል"], answer: "ጆሮ" },
+                        { question: "የቱ እንስሳ ነው በዱር ውስጥ የሚኖር ነገር ግን ቤት ውስጥ የማይኖር?", options: ["ድመት", "ውሻ", "አንበሳ", "ወፍ"], answer: "አንበሳ" },
+                        { question: "የቱ ነገር ነው የሚንሳፈፍ?", options: ["ድንጋይ", "ብረት", "እንጨት", "ሳንቲም"], answer: "እንጨት" },
+                        { question: "የቱ የውሃ ሁኔታ ነው ጋዝ?", options: ["እንፋሎት", "ውሃ", "በረዶ", "ደመና"], answer: "እንፋሎት" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል እና ወተት የማይሰጥ?", options: ["ላም", "ዶሮ", "ፍየል", "በግ"], answer: "ዶሮ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምንሸትበት?", options: ["አፍ", "አፍንጫ", "ጆሮ", "ዓይን"], answer: "አፍንጫ" },
+                        { question: "የትኛው የኃይል አይነት ነው ከከርሰ ምድር ሙቀት የሚመነጨው?", options: ["የፀሐይ ኃይል", "የንፋስ ኃይል", "የጂኦተርማል ኃይል", "የውሃ ኃይል"], answer: "የጂኦተርማል ኃይል" },
+                        { question: "የቱ እንስሳ ነው በዛፍ ላይ የሚኖር እና ሙዝ የሚበላ?", options: ["ውሻ", "ድመት", "ዝንጀሮ", "ላም"], answer: "ዝንጀሮ" },
+                        { question: "የቱ የሰማይ አካል ነው በሌሊት የሚያብረቀርቅ እና የራሱ ብርሃን ያለው?", options: ["ፀሐይ", "ጨረቃ", "ኮከብ", "ደመና"], answer: "ኮከብ" },
+                        { question: "የቱ መሣሪያ ነው ሙቀትን ለመለካት የሚያገለግለው?", options: ["ሚዛን", "ገዥ", "ቴርሞሜትር", "ሰዓት"], answer: "ቴርሞሜትር" },
+                        { question: "አንድ ተክል ምን ይፈልጋል?", options: ["ውሃ", "ፀሐይ", "ካርቦን ዳይኦክሳይድ", "ሁሉም"], answer: "ሁሉም" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል እና ክንፍ ያለው?", options: ["ላም", "ዶሮ", "ዓሳ", "ውሻ"], answer: "ዶሮ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የሰውነትን ሙቀት የሚጠብቀው?", options: ["ፀጉር", "ቆዳ", "አጥንት", "ምስማር"], answer: "ቆዳ" }
+                    ]
+                },
+                {
+                    name: "የ KG 3 ሳይንስ",
+                    id: "kg3_science",
+                    questions: [
+                        { question: "የምድር ስንት ዋና ዋና ሽፋኖች አሉት?", options: ["2", "3", "4", "5"], answer: "3" },
+                        { question: "ውሃ ከጋዝ ወደ ፈሳሽነት ሲቀየር ምን ይባላል?", options: ["ትነት", "ጤዛ", "መቅለጥ", "መፍላት"], answer: "ጤዛ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ደም የሚፈስሰው እና ወደ ሰውነት የሚያሰራጨው?", options: ["ሳንባ", "ልብ", "ሆድ", "አንጎል"], answer: "ልብ" },
+                        { question: "ተክሎች በሌሊት ምን ጋዝ ያመነጫሉ?", options: ["ኦክስጅን", "ካርቦን ዳይኦክሳይድ", "ናይትሮጅን", "ሃይድሮጅን"], answer: "ካርቦን ዳይኦክሳይድ" },
+                        { question: "የቱ እንስሳ ነው በረሃ ውስጥ የሚኖረው እና ውሃ ሳያገኝ ለረጅም ጊዜ የሚቆይ?", options: ["ውሻ", "ድመት", "ግመል", "ዝሆን"], answer: "ግመል" },
+                        { question: "የቱ ፕላኔት ነው ትልቁ የፀሐይ ስርዓት ፕላኔት?", options: ["ምድር", "ማርስ", "ጁፒተር", "ሳተርን"], answer: "ጁፒተር" },
+                        { question: "ምድር በራሷ ዘንግ ዙሪያ ለመዞር ስንት ጊዜ ይወስድባታል?", options: ["አንድ ሰዓት", "አንድ ቀን", "አንድ ወር", "አንድ ዓመት"], answer: "አንድ ቀን" },
+                        { question: "የቱ ንጥረ ነገር ነው የውሃ ዋና አካል?", options: ["ኦክስጅን", "ሃይድሮጅን", "ሁለቱም", "ካርቦን"], answer: "ሁለቱም" },
+                        { question: "የቱ እንስሳ ነው የሚበር እና እንቁላል የሚጥል ነገር ግን ወፍ ያልሆነ?", options: ["ዶሮ", "ንብ", "ወፍ", "ዳክዬ"], answer: "ንብ" },
+                        { question: "የሰውነትን አወቃቀር የሚሰጥ የሰውነት ክፍል ምንድን ነው?", options: ["ቆዳ", "ፀጉር", "አጥንት", "ምስማር"], answer: "አጥንት" },
+                        { question: "የቱ እንስሳ ነው በውሃ ውስጥ የሚኖር ነገር ግን አጥንት የሌለው?", options: ["ዓሳ", "ሻርክ", "ጄሊፊሽ", "ዶልፊን"], answer: "ጄሊፊሽ" },
+                        { question: "የቱ መሣሪያ ነው የሩቅ ነገሮችን ድምፅ ለመስማት የሚያገለግለው?", options: ["ቴሌስኮፕ", "ማይክሮስኮፕ", "ስቴቶስኮፕ", "ማይክሮፎን"], answer: "ስቴቶስኮፕ" },
+                        { question: "የቱ የሰማይ አካል ነው 'የጠዋት ኮከብ' ወይም 'የምሽት ኮከብ' የሚባለው?", options: ["ማርስ", "ቬነስ", "ሜርኩሪ", "ጁፒተር"], answer: "ቬነስ" },
+                        { question: "ውሃ ከፈሳሽ ወደ ጠንካራ ሲቀየር ምን ይባላል?", options: ["መፍላት", "መተን", "መቀዝቀዝ", "መቅለጥ"], answer: "መቀዝቀዝ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምናስብበት እና የምንወስንበት?", options: ["ልብ", "ሳንባ", "ሆድ", "አንጎል"], answer: "አንጎል" },
+                        { question: "የቱ እንስሳ ነው በሌሊት ንቁ የሆነ?", options: ["ውሻ", "ድመት", "ጉጉት", "ዶሮ"], answer: "ጉጉት" },
+                        { question: "የቱ ነገር ነው ከዘይት የሚሰራ?", options: ["ውሃ", "ፕላስቲክ", "ድንጋይ", "እንጨት"], answer: "ፕላስቲክ" },
+                        { question: "የቱ የሰማይ አካል ነው 'ቀይ ፕላኔት' የሚባለው?", options: ["ምድር", "ቬነስ", "ማርስ", "ጁፒተር"], answer: "ማርስ" },
+                        { question: "የቱ የኃይል ምንጭ ነው ምድር ውስጥ የሚገኝ?", options: ["ፀሐይ", "ነፋስ", "ከሰል", "ውሃ"], answer: "ከሰል" },
+                        { question: "አንድ ተክል ምግብ የሚሰራበት ሂደት ምን ይባላል?", options: ["ትንፋሽ", "ፎቶሲንተሲስ", "መፈጨት", "መብሰል"], answer: "ፎቶሲንተሲስ" },
+                        { question: "የቱ እንስሳ ነው ወተት የሚሰጥ እና እንቁላል የሚጥል?", options: ["ላም", "ዶሮ", "ዳክዬ", "ዓሳ"], answer: "ዳክዬ" },
+                        { question: "የቱ ፈሳሽ ነው በሰውነት ውስጥ ንጥረ ነገሮችን የሚያጓጉዘው?", options: ["ውሃ", "ወተት", "ደም", "ጁስ"], answer: "ደም" },
+                        { question: "የቱ ፕላኔት ነው የፀሐይ ስርዓት ትልቁ ጨረቃ ያለው?", options: ["ምድር", "ማርስ", "ጁፒተር", "ሳተርን"], answer: "ጁፒተር" },
+                        { question: "ጤዛ የሚፈጠረው እንዴት ነው?", options: ["ውሃ ሲተን", "ውሃ ሲቀዘቅዝ", "የውሃ እንፋሎት ሲቀዘቅዝ", "ውሃ ሲፈላ"], answer: "የውሃ እንፋሎት ሲቀዘቅዝ" },
+                        { question: "የቱ ጋዝ ነው በከባቢ አየር ውስጥ በብዛት የሚገኘው?", options: ["ኦክስጅን", "ካርቦን ዳይኦክሳይድ", "ናይትሮጅን", "ሃይድሮጅን"], answer: "ናይትሮጅን" },
+                        { question: "የቱ እንስሳ ነው የሚሳበብ?", options: ["ወፍ", "ዓሳ", "እባብ", "ውሻ"], answer: "እባብ" },
+                        { question: "የቱ የኃይል ምንጭ ነው የሚታደስ?", options: ["ነዳጅ", "ከሰል", "የፀሐይ ኃይል", "ጋዝ"], answer: "የፀሐይ ኃይል" },
+                        { question: "የቱ የአየር ሁኔታ ነው ነፋሻማ?", options: ["ፀሐያማ", "ዝናባማ", "በረዷማ", "ነፋስ"], answer: "ነፋስ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ለመተንፈስ የሚረዳ?", options: ["ልብ", "ሳንባ", "ሆድ", "አንጎል"], answer: "ሳንባ" },
+                        { question: "የቱ እንስሳ ነው ጎጆ የሚሰራ?", options: ["ድመት", "ውሻ", "ወፍ", "ዓሳ"], answer: "ወፍ" },
+                        { question: "የቱ መሣሪያ ነው የሩቅ ነገሮችን ቅርብ አድርጎ የሚያሳይ?", options: ["ማይክሮስኮፕ", "ቴሌስኮፕ", "ቢኖኩላር", "ማግኒፊየር"], answer: "ቢኖኩላር" },
+                        { question: "የቱ የእፅዋት ክፍል ነው ዘር የሚሰራ?", options: ["ቅጠል", "ግንድ", "ሥር", "አበባ"], answer: "አበባ" },
+                        { question: "የቱ የፕላኔት ክፍል ነው ለውጦችን የሚያመጣ?", options: ["የብስ", "ውሃ", "ከባቢ አየር", "ሁሉም"], answer: "ሁሉም" },
+                        { question: "የቱ እንስሳ ነው በውሃ ውስጥ የሚኖር ነገር ግን ዓሳ ያልሆነ?", options: ["ዓሳ", "ሻርክ", "ዓሣ ነባሪ", "ዶልፊን"], answer: "ዓሣ ነባሪ" },
+                        { question: "አንድ የካርቦሃይድሬት ምግብ ምሳሌ ስጥ።", options: ["እንቁላል", "ስጋ", "ዳቦ", "ዓሳ"], answer: "ዳቦ" },
+                        { question: "የቱ የሰማይ አካል ነው በምድር ዙሪያ የሚዞረው?", options: ["ፀሐይ", "ማርስ", "ጨረቃ", "ጁፒተር"], answer: "ጨረቃ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ስሜትን የሚቆጣጠር?", options: ["ልብ", "ሳንባ", "ሆድ", "አንጎል"], answer: "አንጎል" },
+                        { question: "የቱ እንስሳ ነው እንደ ሰው የሚንቀሳቀስ?", options: ["ውሻ", "ድመት", "ዝንጀሮ", "ላም"], answer: "ዝንጀሮ" },
+                        { question: "የቱ ነገር ነው የውሃውን ሙቀት የሚጠብቀው?", options: ["ብረት", "ፕላስቲክ", "ቴርሞስ", "ብርጭቆ"], answer: "ቴርሞስ" },
+                        { question: "የቱ የውሃ ሁኔታ ነው ፈሳሽ?", options: ["እንፋሎት", "ውሃ", "በረዶ", "ደመና"], answer: "ውሃ" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል እና የሚበር ነገር ግን ወፍ ያልሆነ?", options: ["ዶሮ", "ባት", "ንብ", "ቢራቢሮ"], answer: "ባት" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምንቀምስበት?", options: ["አፍ", "አፍንጫ", "ጆሮ", "ዓይን"], answer: "አፍ" },
+                        { question: "የትኛው የኃይል አይነት ነው ከንፋስ የሚመነጨው?", options: ["የፀሐይ ኃይል", "የንፋስ ኃይል", "የውሃ ኃይል", "የጂኦተርማል ኃይል"], answer: "የንፋስ ኃይል" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል እና ውሃ ውስጥ የሚኖር?", options: ["ላም", "ዶሮ", "ዓሳ", "ዳክዬ"], answer: "ዓሳ" },
+                        { question: "የቱ የሰማይ አካል ነው በሌሊት የሚያብረቀርቅ ነገር ግን ኮከብ ያልሆነ?", options: ["ፀሐይ", "ጨረቃ", "ፕላኔት", "ኮሜት"], answer: "ፕላኔት" },
+                        { question: "የቱ መሣሪያ ነው የነገሮችን ክብደት ለመለካት የሚያገለግለው?", options: ["ቴርሞሜትር", "ገዥ", "ሚዛን", "ሰዓት"], answer: "ሚዛን" },
+                        { question: "አንድ ተክል ምን ያመነጫል?", options: ["ካርቦን ዳይኦክሳይድ", "ኦክስጅን", "ናይትሮጅን", "ሃይድሮጅን"], answer: "ኦክስጅን" },
+                        { question: "የቱ እንስሳ ነው ቀስ ብሎ የሚንቀሳቀስ እና መሬት ላይ የሚኖር?", options: ["ቺታ", "ዔሊ", "ጥንቸል", "ውሻ"], answer: "ዔሊ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምንነካበት?", options: ["ዓይን", "ጆሮ", "እጅ", "አፍንጫ"], answer: "እጅ" }
+                    ]
+                },
+                {
+                    name: "የ 1ኛ ክፍል ሳይንስ",
+                    id: "grade1_science",
+                    questions: [
+                        { question: "የፀሐይ ስርዓት የትኛው ፕላኔት ነው 'ቀይ ፕላኔት' የሚባለው?", options: ["ምድር", "ቬነስ", "ማርስ", "ጁፒተር"], answer: "ማርስ" },
+                        { question: "ውሃ ከጋዝ ወደ ፈሳሽነት ሲቀየር ምን ይባላል?", options: ["መተን", "ጤዛ", "መቅለጥ", "መፍላት"], answer: "ጤዛ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ደም የሚፈስሰው እና ኦክስጅንን ወደ ሰውነት የሚያሰራጨው?", options: ["ሳንባ", "ልብ", "ሆድ", "አንጎል"], answer: "ልብ" },
+                        { question: "ተክሎች ምግብ ለመስራት ከፀሐይ ብርሃን በተጨማሪ ምን ያስፈልጋቸዋል?", options: ["ኦክስጅን", "ናይትሮጅን", "ካርቦን ዳይኦክሳይድ", "ሃይድሮጅን"], answer: "ካርቦን ዳይኦክሳይድ" },
+                        { question: "የቱ እንስሳ ነው ውሃ ውስጥ የሚኖር ነገር ግን ዓሳ ያልሆነ እና ጡት የሚያጠባ?", options: ["ዓሳ", "ሻርክ", "ዶልፊን", "ጄሊፊሽ"], answer: "ዶልፊን" },
+                        { question: "የቱ ፕላኔት ነው በውበቱ የሚታወቀው እና 'የጠዋት ኮከብ' የሚባለው?", options: ["ምድር", "ቬነስ", "ሜርኩሪ", "ማርስ"], answer: "ቬነስ" },
+                        { question: "ምድር በፀሐይ ዙሪያ ለመዞር ስንት ጊዜ ይወስድባታል?", options: ["አንድ ቀን", "አንድ ወር", "አንድ ዓመት", "አንድ ሰዓት"], answer: "አንድ ዓመት" },
+                        { question: "የቱ ጋዝ ነው ከባቢ አየር ውስጥ በብዛት የሚገኘው?", options: ["ኦክስጅን", "ናይትሮጅን", "ካርቦን ዳይኦክሳይድ", "ሃይድሮጅን"], answer: "ናይትሮጅን" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል ነገር ግን ወፍ ያልሆነ እና በውሃ ውስጥ የሚኖር?", options: ["ዶሮ", "ዳክዬ", "ዓሳ", "እንቁራሪት"], answer: "ዓሳ" },
+                        { question: "የሰውነትን ቅርፅ የሚሰጥ የሰውነት ክፍል ምንድን ነው?", options: ["ቆዳ", "ፀጉር", "አጥንት", "ምስማር"], answer: "አጥንት" },
+                        { question: "የቱ እንስሳ ነው በውሃ ውስጥም በመሬትም የሚኖር ነገር ግን ዓሳም ወፍም ያልሆነ?", options: ["ዓሳ", "ወፍ", "እንቁራሪት", "ድመት"], answer: "እንቁራሪት" },
+                        { question: "የቱ መሣሪያ ነው ሙቀትን ለመለካት የሚያገለግለው?", options: ["ሚዛን", "ቴርሞሜትር", "ገዥ", "ሰዓት"], answer: "ቴርሞሜትር" },
+                        { question: "የቱ የሰማይ አካል ነው በሌሊት የሚያበራው ነገር ግን የራሱ ብርሃን የሌለው?", options: ["ፀሐይ", "ኮከብ", "ጨረቃ", "ኮሜት"], answer: "ጨረቃ" },
+                        { question: "የውሃ መፍላት ነጥብ በሴልሲየስ ስንት ነው?", options: ["0°C", "50°C", "100°C", "200°C"], answer: "100°C" },
+                        { question: "የቱ የሰውነት ክፍል ነው ምግብን የሚያፈርስ እና ንጥረ ነገሮችን የሚወስድ?", options: ["ልብ", "ሳንባ", "ሆድ", "አንጀት"], answer: "አንጀት" },
+                        { question: "የቱ እንስሳ ነው የሚበር እና ደሙ ቀዝቃዛ የሆነ?", options: ["ወፍ", "ባት", "ንብ", "ቢራቢሮ"], answer: "ባት" },
+                        { question: "የቱ ነገር ነው ከጎማ የሚሰራ?", options: ["ጠርሙስ", "ጎማ", "መጽሐፍ", "ጠረጴዛ"], answer: "ጎማ" },
+                        { question: "የቱ የሰማይ አካል ነው በዙሪያችን የሚዞረው እና ቀንና ሌሊትን የሚያመጣ?", options: ["ፀሐይ", "ምድር", "ጨረቃ", "ኮከብ"], answer: "ምድር" },
+                        { question: "የቱ የኃይል ምንጭ ነው ተፈጥሮአዊ እና ያልተገደበ?", options: ["ነዳጅ", "ከሰል", "የፀሐይ ኃይል", "ጋዝ"], answer: "የፀሐይ ኃይል" },
+                        { question: "አንድ ተክል ስንት ዋና ዋና ክፍሎች አሉት?", options: ["2", "3", "4", "5"], answer: "5" },
+                        { question: "የቱ እንስሳ ነው ወተት የሚሰጥ እና ጡት የሚያጠባ?", options: ["ዶሮ", "ወፍ", "ላም", "ዓሳ"], answer: "ላም" },
+                        { question: "የቱ ፈሳሽ ነው የውሃ ዑደት ዋና አካል የሆነው?", options: ["ወተት", "ጁስ", "ውሃ", "ዘይት"], answer: "ውሃ" },
+                        { question: "የቱ ፕላኔት ነው ትልቁ የፀሐይ ስርዓት ፕላኔት?", options: ["ምድር", "ማርስ", "ጁፒተር", "ሳተርን"], answer: "ጁፒተር" },
+                        { question: "የውሃ ዑደት ዋና ዋና ክፍሎች ስንት ናቸው?", options: ["2", "3", "4", "5"], answer: "4" },
+                        { question: "ፎቶሲንተሲስ የሚካሄደው በየትኛው የእፅዋት ክፍል ነው?", options: ["ሥር", "ግንድ", "ቅጠል", "አበባ"], answer: "ቅጠል" },
+                        { question: "የቱ እንስሳ ነው በዛፍ ላይ የሚኖር እና ፍራፍሬ የሚበላ?", options: ["ውሻ", "ድመት", "ዝንጀሮ", "ላም"], answer: "ዝንጀሮ" },
+                        { question: "የቱ የኃይል ምንጭ ነው የምድርን ሙቀት የሚጠቀመው?", options: ["የፀሐይ ኃይል", "የንፋስ ኃይል", "የጂኦተርማል ኃይል", "የውሃ ኃይል"], answer: "የጂኦተርማል ኃይል" },
+                        { question: "የቱ የአየር ሁኔታ ነው ቀስተ ደመናን የሚያመጣ?", options: ["ፀሐያማ", "ዝናባማ", "በረዷማ", "ነፋሻማ"], answer: "ዝናባማ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ደምን የሚያጣራ?", options: ["ልብ", "ሳንባ", "ኩላሊት", "ሆድ"], answer: "ኩላሊት" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል ነገር ግን ወፍ ያልሆነ እና የሚሳበብ?", options: ["ዶሮ", "እባብ", "ንብ", "ቢራቢሮ"], answer: "እባብ" },
+                        { question: "የቱ መሣሪያ ነው አየርን ለማሞቅ የሚያገለግለው?", options: ["ፍሪጅ", "አየር ማቀዝቀዣ", "ማሞቂያ", "ደጋፊ"], answer: "ማሞቂያ" },
+                        { question: "የቱ የእፅዋት ክፍል ነው ዘር የሚሰራ?", options: ["ቅጠል", "ግንድ", "ሥር", "አበባ"], answer: "አበባ" },
+                        { question: "የቱ የፕላኔት ክፍል ነው የህይወት ምንጭ?", options: ["የብስ", "ውሃ", "ከባቢ አየር", "ሁሉም"], answer: "ሁሉም" },
+                        { question: "የቱ እንስሳ ነው በውሃ ውስጥ የሚኖር ነገር ግን ጡት የሚያጠባ እና ዓሳ ያልሆነ?", options: ["ዓሳ", "ሻርክ", "ዓሣ ነባሪ", "ዶልፊን"], answer: "ዓሣ ነባሪ" },
+                        { question: "አንድ የቪታሚን ምንጭ ምግብ ምሳሌ ስጥ።", options: ["ዳቦ", "ሩዝ", "ፍራፍሬ", "ስጋ"], answer: "ፍራፍሬ" },
+                        { question: "የቱ የሰማይ አካል ነው ምድርን በዙሪያው የሚያዞራት?", options: ["ፀሐይ", "ማርስ", "ጨረቃ", "ጁፒተር"], answer: "ፀሐይ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምንሰማበት?", options: ["ዓይን", "ጆሮ", "አፍንጫ", "አፍ"], answer: "ጆሮ" },
+                        { question: "የቱ እንስሳ ነው በዱር ውስጥ የሚኖር እና ሥጋ የሚበላ?", options: ["ድመት", "ውሻ", "አንበሳ", "ዶሮ"], answer: "አንበሳ" },
+                        { question: "የቱ ነገር ነው የሚንሳፈፍ እና ከዛፍ የሚመጣ?", options: ["ድንጋይ", "ብረት", "እንጨት", "ሳንቲም"], answer: "እንጨት" },
+                        { question: "የቱ የውሃ ሁኔታ ነው ጠንካራ?", options: ["እንፋሎት", "ውሃ", "በረዶ", "ደመና"], answer: "በረዶ" },
+                        { question: "የቱ እንስሳ ነው የሚበር እና ደሙ ሞቃት የሆነ?", options: ["ወፍ", "ባት", "ንብ", "ቢራቢሮ"], answer: "ወፍ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምናፈርስበት?", options: ["አፍ", "አፍንጫ", "ጆሮ", "ዓይን"], answer: "አፍ" },
+                        { question: "የትኛው የኃይል አይነት ነው ከወደቀ ውሃ የሚመነጨው?", options: ["የፀሐይ ኃይል", "የንፋስ ኃይል", "የውሃ ኃይል", "የጂኦተርማል ኃይል"], answer: "የውሃ ኃይል" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል ነገር ግን ጡት የሚያጠባ?", options: ["ላም", "ዶሮ", "ዳክዬ", "ፕላቲፐስ"], answer: "ፕላቲፐስ" },
+                        { question: "የቱ የሰማይ አካል ነው በሌሊት የሚያብረቀርቅ እና የራሱ ብርሃን ያለው?", options: ["ፀሐይ", "ጨረቃ", "ኮከብ", "ደመና"], answer: "ኮከብ" },
+                        { question: "የቱ መሣሪያ ነው የነገሮችን ርዝመት ለመለካት የሚያገለግለው?", options: ["ቴርሞሜትር", "ገዥ", "ሚዛን", "ሰዓት"], answer: "ገዥ" },
+                        { question: "አንድ ተክል ምግብ ለመስራት የሚያስፈልገው ነገር ምንድን ነው?", options: ["ውሃ", "ፀሐይ", "ካርቦን ዳይኦክሳይድ", "ሁሉም"], answer: "ሁሉም" },
+                        { question: "የቱ እንስሳ ነው ቀስ ብሎ የሚንቀሳቀስ ነገር ግን የሚበር?", options: ["ጥንቸል", "ዔሊ", "ቢራቢሮ", "ውሻ"], answer: "ቢራቢሮ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምንነካበት?", options: ["ዓይን", "ጆሮ", "እጅ", "አፍንጫ"], answer: "እጅ" }
+                    ]
+                },
+                {
+                    name: "የ 2ኛ ክፍል ሳይንስ",
+                    id: "grade2_science",
+                    questions: [
+                        { question: "የቱ የፀሐይ ስርዓት ፕላኔት ነው ቀለበት ያለው?", options: ["ምድር", "ማርስ", "ጁፒተር", "ሳተርን"], answer: "ሳተርን" },
+                        { question: "ውሃ ከጋዝ ወደ ፈሳሽነት ሲቀየር ምን ይባላል?", options: ["ትነት", "ጤዛ", "መቅለጥ", "መፍላት"], answer: "ጤዛ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ደም የሚፈስሰው እና ወደ ሰውነት የሚያሰራጨው?", options: ["ሳንባ", "ልብ", "ሆድ", "አንጎል"], answer: "ልብ" },
+                        { question: "ተክሎች ምግብ ለመስራት ከፀሐይ ብርሃን በተጨማሪ ምን ያስፈልጋቸዋል?", options: ["ኦክስጅን", "ናይትሮጅን", "ካርቦን ዳይኦክሳይድ", "ሃይድሮጅን"], answer: "ካርቦን ዳይኦክሳይድ" },
+                        { question: "የቱ እንስሳ ነው በበረዶ ውስጥ የሚኖረው እና ወፍራም ቆዳ ያለው?", options: ["ድብ", "ግመል", "ዋልረስ", "ነብር"], answer: "ዋልረስ" },
+                        { question: "የቱ ፕላኔት ነው ከፀሐይ በጣም ቅርብ የሆነው?", options: ["ምድር", "ቬነስ", "ሜርኩሪ", "ማርስ"], answer: "ሜርኩሪ" },
+                        { question: "ጨረቃ በምድር ዙሪያ ለመዞር ስንት ጊዜ ይወስድባታል?", options: ["አንድ ቀን", "አንድ ወር", "አንድ ዓመት", "አንድ ሰዓት"], answer: "አንድ ወር" },
+                        { question: "የቱ ንጥረ ነገር ነው እሳት እንዲነድድ የሚያደርገው?", options: ["ውሃ", "አየር", "ድንጋይ", "አሸዋ"], answer: "አየር" },
+                        { question: "የቱ እንስሳ ነው ወተት የሚሰጥ እና ጡት የሚያጠባ?", options: ["ዶሮ", "ወፍ", "ላም", "ዓሳ"], answer: "ላም" },
+                        { question: "የሰውነትን አወቃቀር የሚሰጥ የሰውነት ክፍል ምንድን ነው?", options: ["ቆዳ", "ፀጉር", "አጥንት", "ምስማር"], answer: "አጥንት" },
+                        { question: "የቱ እንስሳ ነው በውሃ ውስጥ የሚኖር ነገር ግን ዓሳ ያልሆነ እና ጡት የሚያጠባ?", options: ["ዓሳ", "ሻርክ", "ዶልፊን", "ጄሊፊሽ"], answer: "ዶልፊን" },
+                        { question: "የቱ መሣሪያ ነው ሩቅ ነገሮችን ለማየት የሚያገለግለው?", options: ["ማይክሮስኮፕ", "ቴሌስኮፕ", "ቢኖኩላር", "ማግኒፊየር"], answer: "ቴሌስኮፕ" },
+                        { question: "ፀሐይ ከዋክብት ናት ወይስ ፕላኔት?", options: ["ኮከብ", "ፕላኔት", "ጨረቃ", "ጋላክሲ"], answer: "ኮከብ" },
+                        { question: "የውሃ መፍላት ነጥብ በፋራናይት ስንት ነው?", options: ["32°F", "100°F", "212°F", "0°F"], answer: "212°F" },
+                        { question: "የቱ የሰውነት ክፍል ነው ምግብን የሚያፈርስ እና ንጥረ ነገሮችን የሚወስድ?", options: ["ልብ", "ሳንባ", "ሆድ", "አንጀት"], answer: "አንጀት" },
+                        { question: "የቱ እንስሳ ነው በሌሊት ንቁ የሆነ እና የሚበር?", options: ["ወፍ", "ባት", "ንብ", "ቢራቢሮ"], answer: "ባት" },
+                        { question: "የቱ ነገር ነው ከዘይት የሚሰራ?", options: ["ውሃ", "ፕላስቲክ", "ድንጋይ", "እንጨት"], answer: "ፕላስቲክ" },
+                        { question: "የቱ የሰማይ አካል ነው በዙሪያችን የሚዞረው እና ቀንና ሌሊትን የሚያመጣ?", options: ["ፀሐይ", "ምድር", "ጨረቃ", "ኮከብ"], answer: "ምድር" },
+                        { question: "የቱ የኃይል ምንጭ ነው የምድርን ሙቀት የሚጠቀመው?", options: ["የፀሐይ ኃይል", "የንፋስ ኃይል", "የጂኦተርማል ኃይል", "የውሃ ኃይል"], answer: "የጂኦተርማል ኃይል" },
+                        { question: "አንድ ተክል ስንት ዋና ዋና ክፍሎች አሉት?", options: ["2", "3", "4", "5"], answer: "5" },
+                        { question: "የቱ እንስሳ ነው ስጋ የሚበላ?", options: ["ላም", "በግ", "አንበሳ", "ጥንቸል"], answer: "አንበሳ" },
+                        { question: "የቱ ፈሳሽ ነው በሰውነት ውስጥ ንጥረ ነገሮችን የሚያጓጉዘው?", options: ["ውሃ", "ወተት", "ደም", "ጁስ"], answer: "ደም" },
+                        { question: "የቱ ፕላኔት ነው ትልቁ የፀሐይ ስርዓት ፕላኔት?", options: ["ምድር", "ማርስ", "ጁፒተር", "ሳተርን"], answer: "ጁፒተር" },
+                        { question: "የውሃ ዑደት ዋና ዋና ክፍሎች ስንት ናቸው?", options: ["2", "3", "4", "5"], answer: "4" },
+                        { question: "ፎቶሲንተሲስ የሚካሄደው በየትኛው የእፅዋት ክፍል ነው?", options: ["ሥር", "ግንድ", "ቅጠል", "አበባ"], answer: "ቅጠል" },
+                        { question: "የቱ እንስሳ ነው በዛፍ ላይ የሚኖር እና ሙዝ የሚበላ?", options: ["ውሻ", "ድመት", "ዝንጀሮ", "ላም"], answer: "ዝንጀሮ" },
+                        { question: "የቱ የኃይል ምንጭ ነው ከወደቀ ውሃ የሚመነጨው?", options: ["የፀሐይ ኃይል", "የንፋስ ኃይል", "የውሃ ኃይል", "የጂኦተርማል ኃይል"], answer: "የውሃ ኃይል" },
+                        { question: "የቱ የአየር ሁኔታ ነው ቀስተ ደመናን የሚያመጣ?", options: ["ፀሐያማ", "ዝናባማ", "በረዷማ", "ነፋሻማ"], answer: "ዝናባማ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ደምን የሚያጣራ?", options: ["ልብ", "ሳንባ", "ኩላሊት", "ሆድ"], answer: "ኩላሊት" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል ነገር ግን ወፍ ያልሆነ እና የሚሳበብ?", options: ["ዶሮ", "እባብ", "ንብ", "ቢራቢሮ"], answer: "እባብ" },
+                        { question: "የቱ መሣሪያ ነው አየርን ለማቀዝቀዝ የሚያገለግለው?", options: ["ፍሪጅ", "አየር ማቀዝቀዣ", "ማሞቂያ", "ደጋፊ"], answer: "አየር ማቀዝቀዣ" },
+                        { question: "የቱ የእፅዋት ክፍል ነው ዘር የሚሰራ?", options: ["ቅጠል", "ግንድ", "ሥር", "አበባ"], answer: "አበባ" },
+                        { question: "የቱ የፕላኔት ክፍል ነው የህይወት ምንጭ?", options: ["የብስ", "ውሃ", "ከባቢ አየር", "ሁሉም"], answer: "ሁሉም" },
+                        { question: "የቱ እንስሳ ነው በውሃ ውስጥ የሚኖር ነገር ግን ጡት የሚያጠባ እና ዓሳ ያልሆነ?", options: ["ዓሳ", "ሻርክ", "ዓሣ ነባሪ", "ዶልፊን"], answer: "ዓሣ ነባሪ" },
+                        { question: "አንድ የቪታሚን ምንጭ ምግብ ምሳሌ ስጥ።", options: ["ዳቦ", "ሩዝ", "ፍራፍሬ", "ስጋ"], answer: "ፍራፍሬ" },
+                        { question: "የቱ የሰማይ አካል ነው ምድርን በዙሪያው የሚያዞራት?", options: ["ፀሐይ", "ማርስ", "ጨረቃ", "ጁፒተር"], answer: "ፀሐይ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምንሰማበት?", options: ["ዓይን", "ጆሮ", "አፍንጫ", "አፍ"], answer: "ጆሮ" },
+                        { question: "የቱ እንስሳ ነው በዱር ውስጥ የሚኖር እና ሥጋ የሚበላ?", options: ["ድመት", "ውሻ", "አንበሳ", "ዶሮ"], answer: "አንበሳ" },
+                        { question: "የቱ ነገር ነው የሚንሳፈፍ እና ከዛፍ የሚመጣ?", options: ["ድንጋይ", "ብረት", "እንጨት", "ሳንቲም"], answer: "እንጨት" },
+                        { question: "የቱ የውሃ ሁኔታ ነው ጠንካራ?", options: ["እንፋሎት", "ውሃ", "በረዶ", "ደመና"], answer: "በረዶ" },
+                        { question: "የቱ እንስሳ ነው የሚበር እና ደሙ ሞቃት የሆነ?", options: ["ወፍ", "ባት", "ንብ", "ቢራቢሮ"], answer: "ወፍ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምናፈርስበት?", options: ["አፍ", "አፍንጫ", "ጆሮ", "ዓይን"], answer: "አፍ" },
+                        { question: "የትኛው የኃይል አይነት ነው ከንፋስ የሚመነጨው?", options: ["የፀሐይ ኃይል", "የንፋስ ኃይል", "የውሃ ኃይል", "የጂኦተርማል ኃይል"], answer: "የንፋስ ኃይል" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል ነገር ግን ጡት የሚያጠባ?", options: ["ላም", "ዶሮ", "ዳክዬ", "ፕላቲፐስ"], answer: "ፕላቲፐስ" },
+                        { question: "የቱ የሰማይ አካል ነው በሌሊት የሚያብረቀርቅ እና የራሱ ብርሃን ያለው?", options: ["ፀሐይ", "ጨረቃ", "ኮከብ", "ደመና"], answer: "ኮከብ" },
+                        { question: "የቱ መሣሪያ ነው የነገሮችን ርዝመት ለመለካት የሚያገለግለው?", options: ["ቴርሞሜትር", "ገዥ", "ሚዛን", "ሰዓት"], answer: "ገዥ" },
+                        { question: "አንድ ተክል ምግብ ለመስራት የሚያስፈልገው ነገር ምንድን ነው?", options: ["ውሃ", "ፀሐይ", "ካርቦን ዳይኦክሳይድ", "ሁሉም"], answer: "ሁሉም" },
+                        { question: "የቱ እንስሳ ነው ቀስ ብሎ የሚንቀሳቀስ ነገር ግን የሚበር?", options: ["ጥንቸል", "ዔሊ", "ቢራቢሮ", "ውሻ"], answer: "ቢራቢሮ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምንነካበት?", options: ["ዓይን", "ጆሮ", "እጅ", "አፍንጫ"], answer: "እጅ" }
+                    ]
+                },
+                {
+                    name: "የ 3ኛ ክፍል ሳይንስ",
+                    id: "grade3_science",
+                    questions: [
+                        { question: "የምድር ስንት ዋና ዋና ሽፋኖች አሉት?", options: ["2", "3", "4", "5"], answer: "3" },
+                        { question: "ውሃ ከጋዝ ወደ ፈሳሽነት ሲቀየር ምን ይባላል?", options: ["ትነት", "ጤዛ", "መቅለጥ", "መፍላት"], answer: "ጤዛ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ደም የሚፈስሰው እና ወደ ሰውነት የሚያሰራጨው?", options: ["ሳንባ", "ልብ", "ሆድ", "አንጎል"], answer: "ልብ" },
+                        { question: "ተክሎች በሌሊት ምን ጋዝ ያመነጫሉ?", options: ["ኦክስጅን", "ካርቦን ዳይኦክሳይድ", "ናይትሮጅን", "ሃይድሮጅን"], answer: "ካርቦን ዳይኦክሳይድ" },
+                        { question: "የቱ እንስሳ ነው በረሃ ውስጥ የሚኖረው እና ውሃ ሳያገኝ ለረጅም ጊዜ የሚቆይ?", options: ["ውሻ", "ድመት", "ግመል", "ዝሆን"], answer: "ግመል" },
+                        { question: "የቱ ፕላኔት ነው ትልቁ የፀሐይ ስርዓት ፕላኔት?", options: ["ምድር", "ማርስ", "ጁፒተር", "ሳተርን"], answer: "ጁፒተር" },
+                        { question: "ምድር በራሷ ዘንግ ዙሪያ ለመዞር ስንት ጊዜ ይወስድባታል?", options: ["አንድ ሰዓት", "አንድ ቀን", "አንድ ወር", "አንድ ዓመት"], answer: "አንድ ቀን" },
+                        { question: "የቱ ንጥረ ነገር ነው የውሃ ዋና አካል?", options: ["ኦክስጅን", "ሃይድሮጅን", "ሁለቱም", "ካርቦን"], answer: "ሁለቱም" },
+                        { question: "የቱ እንስሳ ነው የሚበር እና እንቁላል የሚጥል ነገር ግን ወፍ ያልሆነ?", options: ["ዶሮ", "ንብ", "ወፍ", "ዳክዬ"], answer: "ንብ" },
+                        { question: "የሰውነትን አወቃቀር የሚሰጥ የሰውነት ክፍል ምንድን ነው?", options: ["ቆዳ", "ፀጉር", "አጥንት", "ምስማር"], answer: "አጥንት" },
+                        { question: "የቱ እንስሳ ነው በውሃ ውስጥ የሚኖር ነገር ግን አጥንት የሌለው?", options: ["ዓሳ", "ሻርክ", "ጄሊፊሽ", "ዶልፊን"], answer: "ጄሊፊሽ" },
+                        { question: "የቱ መሣሪያ ነው የሩቅ ነገሮችን ድምፅ ለመስማት የሚያገለግለው?", options: ["ቴሌስኮፕ", "ማይክሮስኮፕ", "ስቴቶስኮፕ", "ማይክሮፎን"], answer: "ስቴቶስኮፕ" },
+                        { question: "የቱ የሰማይ አካል ነው 'የጠዋት ኮከብ' ወይም 'የምሽት ኮከብ' የሚባለው?", options: ["ማርስ", "ቬነስ", "ሜርኩሪ", "ጁፒተር"], answer: "ቬነስ" },
+                        { question: "ውሃ ከፈሳሽ ወደ ጠንካራ ሲቀየር ምን ይባላል?", options: ["መፍላት", "መተን", "መቀዝቀዝ", "መቅለጥ"], answer: "መቀዝቀዝ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምናስብበት እና የምንወስንበት?", options: ["ልብ", "ሳንባ", "ሆድ", "አንጎል"], answer: "አንጎል" },
+                        { question: "የቱ እንስሳ ነው በሌሊት ንቁ የሆነ?", options: ["ውሻ", "ድመት", "ጉጉት", "ዶሮ"], answer: "ጉጉት" },
+                        { question: "የቱ ነገር ነው ከዘይት የሚሰራ?", options: ["ውሃ", "ፕላስቲክ", "ድንጋይ", "እንጨት"], answer: "ፕላስቲክ" },
+                        { question: "የቱ የሰማይ አካል ነው 'ቀይ ፕላኔት' የሚባለው?", options: ["ምድር", "ቬነስ", "ማርስ", "ጁፒተር"], answer: "ማርስ" },
+                        { question: "የቱ የኃይል ምንጭ ነው ምድር ውስጥ የሚገኝ?", options: ["ፀሐይ", "ነፋስ", "ከሰል", "ውሃ"], answer: "ከሰል" },
+                        { question: "አንድ ተክል ምግብ የሚሰራበት ሂደት ምን ይባላል?", options: ["ትንፋሽ", "ፎቶሲንተሲስ", "መፈጨት", "መብሰል"], answer: "ፎቶሲንተሲስ" },
+                        { question: "የቱ እንስሳ ነው ወተት የሚሰጥ እና እንቁላል የሚጥል?", options: ["ላም", "ዶሮ", "ዳክዬ", "ዓሳ"], answer: "ዳክዬ" },
+                        { question: "የቱ ፈሳሽ ነው በሰውነት ውስጥ ንጥረ ነገሮችን የሚያጓጉዘው?", options: ["ውሃ", "ወተት", "ደም", "ጁስ"], answer: "ደም" },
+                        { question: "የቱ ፕላኔት ነው የፀሐይ ስርዓት ትልቁ ጨረቃ ያለው?", options: ["ምድር", "ማርስ", "ጁፒተር", "ሳተርን"], answer: "ጁፒተር" },
+                        { question: "ጤዛ የሚፈጠረው እንዴት ነው?", options: ["ውሃ ሲተን", "ውሃ ሲቀዘቅዝ", "የውሃ እንፋሎት ሲቀዘቅዝ", "ውሃ ሲፈላ"], answer: "የውሃ እንፋሎት ሲቀዘቅዝ" },
+                        { question: "የቱ ጋዝ ነው በከባቢ አየር ውስጥ በብዛት የሚገኘው?", options: ["ኦክስጅን", "ካርቦን ዳይኦክሳይድ", "ናይትሮጅን", "ሃይድሮጅን"], answer: "ናይትሮጅን" },
+                        { question: "የቱ እንስሳ ነው የሚሳበብ?", options: ["ወፍ", "ዓሳ", "እባብ", "ውሻ"], answer: "እባብ" },
+                        { question: "የቱ የኃይል ምንጭ ነው የሚታደስ?", options: ["ነዳጅ", "ከሰል", "የፀሐይ ኃይል", "ጋዝ"], answer: "የፀሐይ ኃይል" },
+                        { question: "የቱ የአየር ሁኔታ ነው ነፋሻማ?", options: ["ፀሐያማ", "ዝናባማ", "በረዷማ", "ነፋስ"], answer: "ነፋስ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ለመተንፈስ የሚረዳ?", options: ["ልብ", "ሳንባ", "ሆድ", "አንጎል"], answer: "ሳንባ" },
+                        { question: "የቱ እንስሳ ነው ጎጆ የሚሰራ?", options: ["ድመት", "ውሻ", "ወፍ", "ዓሳ"], answer: "ወፍ" },
+                        { question: "የቱ መሣሪያ ነው የሩቅ ነገሮችን ቅርብ አድርጎ የሚያሳይ?", options: ["ማይክሮስኮፕ", "ቴሌስኮፕ", "ቢኖኩላር", "ማግኒፊየር"], answer: "ቢኖኩላር" },
+                        { question: "የቱ የእፅዋት ክፍል ነው ዘር የሚሰራ?", options: ["ቅጠል", "ግንድ", "ሥር", "አበባ"], answer: "አበባ" },
+                        { question: "የቱ የፕላኔት ክፍል ነው ለውጦችን የሚያመጣ?", options: ["የብስ", "ውሃ", "ከባቢ አየር", "ሁሉም"], answer: "ሁሉም" },
+                        { question: "የቱ እንስሳ ነው በውሃ ውስጥ የሚኖር ነገር ግን ዓሳ ያልሆነ እና ጡት የሚያጠባ?", options: ["ዓሳ", "ሻርክ", "ዓሣ ነባሪ", "ዶልፊን"], answer: "ዓሣ ነባሪ" },
+                        { question: "አንድ የካርቦሃይድሬት ምግብ ምሳሌ ስጥ።", options: ["እንቁላል", "ስጋ", "ዳቦ", "ዓሳ"], answer: "ዳቦ" },
+                        { question: "የቱ የሰማይ አካል ነው በምድር ዙሪያ የሚዞረው?", options: ["ፀሐይ", "ማርስ", "ጨረቃ", "ጁፒተር"], answer: "ጨረቃ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ስሜትን የሚቆጣጠር?", options: ["ልብ", "ሳንባ", "ሆድ", "አንጎል"], answer: "አንጎል" },
+                        { question: "የቱ እንስሳ ነው እንደ ሰው የሚንቀሳቀስ?", options: ["ውሻ", "ድመት", "ዝንጀሮ", "ላም"], answer: "ዝንጀሮ" },
+                        { question: "የቱ ነገር ነው የውሃውን ሙቀት የሚጠብቀው?", options: ["ብረት", "ፕላስቲክ", "ቴርሞስ", "ብርጭቆ"], answer: "ቴርሞስ" },
+                        { question: "የቱ የውሃ ሁኔታ ነው ፈሳሽ?", options: ["እንፋሎት", "ውሃ", "በረዶ", "ደመና"], answer: "ውሃ" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል እና የሚበር ነገር ግን ወፍ ያልሆነ?", options: ["ዶሮ", "ባት", "ንብ", "ቢራቢሮ"], answer: "ባት" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምንቀምስበት?", options: ["አፍ", "አፍንጫ", "ጆሮ", "ዓይን"], answer: "አፍ" },
+                        { question: "የትኛው የኃይል አይነት ነው ከንፋስ የሚመነጨው?", options: ["የፀሐይ ኃይል", "የንፋስ ኃይል", "የውሃ ኃይል", "የጂኦተርማል ኃይል"], answer: "የንፋስ ኃይል" },
+                        { question: "የቱ እንስሳ ነው እንቁላል የሚጥል እና ውሃ ውስጥ የሚኖር?", options: ["ላም", "ዶሮ", "ዓሳ", "ዳክዬ"], answer: "ዓሳ" },
+                        { question: "የቱ የሰማይ አካል ነው በሌሊት የሚያብረቀርቅ ነገር ግን ኮከብ ያልሆነ?", options: ["ፀሐይ", "ጨረቃ", "ፕላኔት", "ኮሜት"], answer: "ፕላኔት" },
+                        { question: "የቱ መሣሪያ ነው የነገሮችን ክብደት ለመለካት የሚያገለግለው?", options: ["ቴርሞሜትር", "ገዥ", "ሚዛን", "ሰዓት"], answer: "ሚዛን" },
+                        { question: "አንድ ተክል ምን ያመነጫል?", options: ["ካርቦን ዳይኦክሳይድ", "ኦክስጅን", "ናይትሮጅን", "ሃይድሮጅን"], answer: "ኦክስጅን" },
+                        { question: "የቱ እንስሳ ነው ቀስ ብሎ የሚንቀሳቀስ እና መሬት ላይ የሚኖር?", options: ["ቺታ", "ዔሊ", "ጥንቸል", "ውሻ"], answer: "ዔሊ" },
+                        { question: "የቱ የሰውነት ክፍል ነው የምንነካበት?", options: ["ዓይን", "ጆሮ", "እጅ", "አፍንጫ"], answer: "እጅ" }
+                    ]
+                }
+            ];
+
+            // DOM elements
+            const levelListDiv = document.getElementById('level-list');
+            const quizSectionDiv = document.getElementById('quiz-section');
+            const backButton = document.getElementById('back-button');
+            const levelTitle = document.getElementById('level-title');
+            const questionNumberDisplay = document.getElementById('question-number');
+            const questionDisplay = document.getElementById('question-display');
+            const optionsContainer = document.getElementById('options-container');
+            const submitAnswerButton = document.getElementById('submit-answer');
+            const nextQuestionButton = document.getElementById('next-question');
+            const feedbackDisplay = document.getElementById('feedback-display');
+            const quizCompleteMessage = document.getElementById('quiz-complete-message');
+
+            let currentLevel = null;
+            let currentQuestionIndex = 0;
+            let selectedOption = null;
+
+            // Function to render the list of levels
+            function renderLevels() {
+                levelListDiv.innerHTML = ''; // Clear previous list
+                levels.forEach(level => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-item bg-blue-100 text-blue-800 p-4 rounded-lg cursor-pointer text-xl font-medium shadow-md hover:bg-blue-200';
+                    listItem.textContent = level.name;
+                    listItem.dataset.levelId = level.id; // Store ID for easy lookup
+                    listItem.addEventListener('click', () => showQuiz(level));
+                    levelListDiv.appendChild(listItem);
+                });
+            }
+
+            // Function to show the quiz section for a given level
+            function showQuiz(level, startIndex = 0) {
+                currentLevel = level;
+                currentQuestionIndex = startIndex;
+                levelListDiv.classList.add('hidden'); // Hide level list
+                quizSectionDiv.classList.remove('hidden'); // Show quiz section
+
+                // Reset quiz section state
+                quizCompleteMessage.classList.add('hidden');
+                submitAnswerButton.classList.remove('hidden');
+                nextQuestionButton.classList.add('hidden');
+                optionsContainer.classList.remove('pointer-events-none', 'opacity-50'); // Enable options interaction
+
+                levelTitle.textContent = level.name;
+                displayQuestion(); // Display the first question
+
+                // Save user's current level to Firestore ONLY if Firebase is initialized
+                if (firebaseInitialized) {
+                    saveUserProgress(userId, level.id, currentQuestionIndex);
+                }
+            }
+
+            // Function to display the current question and its options
+            function displayQuestion() {
+                if (currentLevel && currentQuestionIndex < currentLevel.questions.length) {
+                    const q = currentLevel.questions[currentQuestionIndex];
+                    questionNumberDisplay.textContent = `ጥያቄ ${currentQuestionIndex + 1} ከ ${currentLevel.questions.length}`;
+                    questionDisplay.textContent = q.question;
+
+                    // Clear previous options
+                    optionsContainer.innerHTML = '';
+                    selectedOption = null; // Reset selected option
+
+                    // Shuffle options before displaying
+                    const shuffledOptions = shuffleArray([...q.options]);
+
+                    // Create and append radio buttons for each option
+                    shuffledOptions.forEach((option, index) => {
+                        const optionDiv = document.createElement('label');
+                        optionDiv.className = 'option-item block text-gray-700 hover:bg-blue-50';
+                        optionDiv.innerHTML = `
+                            <input type="radio" name="quiz_option" value="${option}" class="form-radio h-5 w-5 text-blue-600">
+                            <span class="ml-3 text-lg">${option}</span>
+                        `;
+                        optionsContainer.appendChild(optionDiv);
+
+                        // Add event listener to each radio button to track selection
+                        optionDiv.querySelector('input[type="radio"]').addEventListener('change', (event) => {
+                            selectedOption = event.target.value;
+                            feedbackDisplay.textContent = ''; // Clear feedback when a new option is selected
+                            feedbackDisplay.className = 'text-lg mt-4 font-medium'; // Reset feedback style
+                        });
+                    });
+
+                    feedbackDisplay.textContent = ''; // Clear feedback
+                    feedbackDisplay.className = 'text-lg mt-4 font-medium'; // Reset feedback style
+                    submitAnswerButton.classList.remove('hidden'); // Ensure submit button is visible
+                    nextQuestionButton.classList.add('hidden'); // Ensure next button is hidden
+                    optionsContainer.classList.remove('pointer-events-none', 'opacity-50'); // Re-enable options
+                } else {
+                    // Quiz is complete
+                    quizCompleteMessage.classList.remove('hidden');
+                    questionNumberDisplay.textContent = '';
+                    questionDisplay.textContent = '';
+                    optionsContainer.innerHTML = ''; // Clear options
+                    submitAnswerButton.classList.add('hidden'); // Hide submit
+                    nextQuestionButton.classList.add('hidden'); // Hide next
+                }
+            }
+
+            // Function to handle answer submission
+            submitAnswerButton.addEventListener('click', () => {
+                if (!selectedOption) {
+                    showModal("እባክዎ መልስ ከማስገባትዎ በፊት መልስ ይምረጡ።");
+                    return;
+                }
+
+                if (currentLevel && currentQuestionIndex < currentLevel.questions.length) {
+                    const correctAnswer = currentLevel.questions[currentQuestionIndex].answer;
+                    // Normalize answers for comparison (case-insensitive)
+                    if (selectedOption.toLowerCase() === correctAnswer.toLowerCase()) {
+                        feedbackDisplay.textContent = "ትክክል ነው! በጣም ጥሩ!";
+                        feedbackDisplay.className = 'text-lg mt-4 font-medium text-green-600';
+                    } else {
+                        feedbackDisplay.textContent = `ትክክል አይደለም። ትክክለኛው መልስ "${correctAnswer}" ነው።`;
+                        feedbackDisplay.className = 'text-lg mt-4 font-medium text-red-600';
+                    }
+                    submitAnswerButton.classList.add('hidden'); // Hide submit
+                    nextQuestionButton.classList.remove('hidden'); // Show next
+                    optionsContainer.classList.add('pointer-events-none', 'opacity-50'); // Disable options after submission
+                }
+            });
+
+            // Function to move to the next question
+            nextQuestionButton.addEventListener('click', () => {
+                currentQuestionIndex++;
+                displayQuestion(); // Display the next question or quiz complete message
+
+                // Save progress after moving to next question ONLY if Firebase is initialized
+                if (firebaseInitialized && currentLevel) { // Check currentLevel to avoid saving if quiz is complete
+                    saveUserProgress(userId, currentLevel.id, currentQuestionIndex);
+                }
+            });
+
+            // Function to go back to the level list
+            backButton.addEventListener('click', () => {
+                quizSectionDiv.classList.add('hidden'); // Hide quiz section
+                levelListDiv.classList.remove('hidden'); // Show level list
+                quizCompleteMessage.classList.add('hidden'); // Hide quiz complete message
+                optionsContainer.classList.remove('pointer-events-none', 'opacity-50'); // Ensure options are re-enabled
+                currentLevel = null;
+                currentQuestionIndex = 0; // Reset index for next quiz
+            });
+
+            // Initial render of levels
+            renderLevels();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>የስፖርት ትምህርት ደረጃዎች ጥያቄና መልስ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a better look and feel */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Ensure it takes full viewport height */
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        .list-item, .button {
+            transition: all 0.2s ease-in-out; /* Smooth transitions for hover effects */
+        }
+        .list-item:hover {
+            transform: translateY(-3px); /* Slight lift on hover */
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+        /* Custom modal for alerts */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e0; /* Light gray border */
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            background-color: #f8fafc; /* Very light blue-gray */
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+            text-align: left;
+        }
+        .option-item:hover {
+            background-color: #e2e8f0; /* Slightly darker on hover */
+            border-color: #93c5fd; /* Blue border on hover */
+        }
+        .option-item input[type="radio"] {
+            margin-right: 1rem;
+            cursor: pointer;
+            accent-color: #3b82f6; /* Blue accent for radio button */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">የስፖርት ትምህርት ደረጃዎች</h1>
+
+        <div id="level-list" class="space-y-4">
+            </div>
+
+        <div id="quiz-section" class="hidden text-left">
+            <button id="back-button" class="button bg-gray-200 text-gray-700 px-4 py-2 rounded-lg mb-6 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+                ← ወደ ደረጃዎች ተመለስ
+            </button>
+            <p id="level-title" class="text-2xl font-semibold text-blue-700 mb-6"></p>
+            <p id="question-number" class="text-lg text-gray-600 mb-2"></p>
+            <p id="question-display" class="text-xl text-gray-800 mb-6"></p>
+
+            <div id="options-container" class="space-y-3 mb-4">
+                </div>
+
+            <button id="submit-answer" class="button bg-blue-600 text-white px-6 py-3 rounded-lg w-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                መልስ አስገባ
+            </button>
+            <button id="next-question" class="button bg-green-500 text-white px-6 py-3 rounded-lg w-full mt-4 hidden hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">
+                ቀጣይ ጥያቄ
+            </button>
+            <p id="feedback-display" class="text-lg mt-4 font-medium"></p>
+            <p id="quiz-complete-message" class="text-2xl text-green-700 font-bold mt-8 hidden">
+                ጥያቄዎቹ ተጠናቀዋል! በጣም ጥሩ!
+            </p>
+        </div>
+    </div>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="modal-message" class="text-lg text-gray-800"></p>
+            <button id="modal-ok-button" class="button bg-blue-600 text-white px-4 py-2 rounded-lg mt-4 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">እሺ</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration and initialization (MANDATORY in Canvas, optional for local run without persistence)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use a dummy for local execution
+        const firebaseConfigRaw = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        let firebaseConfig = {};
+        let firebaseEnabled = false;
+
+        // Attempt to parse firebaseConfig. If it's an empty object, Firebase will not be initialized.
+        try {
+            firebaseConfig = JSON.parse(firebaseConfigRaw);
+            // Check if the parsed config actually has keys (meaning it's not just an empty object from Canvas default)
+            if (Object.keys(firebaseConfig).length > 0) {
+                firebaseEnabled = true;
+            } else {
+                console.warn("No Firebase configuration provided or config is empty. Persistence will be disabled.");
+            }
+        } catch (e) {
+            console.error("Error parsing Firebase config:", e);
+            console.warn("Firebase will be disabled due to config error. Persistence will not work.");
+        }
+
+        let app, db, auth, userId;
+        let firebaseInitialized = false; // Flag to track successful Firebase initialization
+
+        // Function to show custom modal
+        function showModal(message) {
+            const modal = document.getElementById('myModal');
+            const modalMessage = document.getElementById('modal-message');
+            modalMessage.textContent = message;
+            modal.style.display = 'flex'; // Use flex to center
+        }
+
+        // Helper function to shuffle an array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Firestore: Save user's last selected level and question index
+        async function saveUserProgress(uid, levelId, questionIndex) {
+            if (!firebaseInitialized || !db) { // Check firebaseInitialized
+                console.warn("Firebase is not initialized. Progress will not be saved.");
+                return;
+            }
+            const userDocRef = doc(db, `artifacts/${appId}/users/${uid}/progress`, 'lastQuizState');
+            try {
+                await setDoc(userDocRef, {
+                    lastLevelId: levelId,
+                    lastQuestionIndex: questionIndex
+                }, { merge: true });
+                console.log(`User ${uid} progress saved: Level ${levelId}, Question ${questionIndex}`);
+            } catch (e) {
+                    console.error("Error saving document: ", e);
+                showModal("ሂደትን ማስቀመጥ አልተቻለም፡፡ እባክዎ የበይነመረብ ግንኙነትዎን ያረጋግጡ።");
+            }
+        }
+
+        // Firestore: Load user's last selected level and question index and resume
+        async function loadUserProgress(uid) {
+            if (!firebaseInitialized || !db) { // Check firebaseInitialized
+                console.warn("Firebase is not initialized. Progress will not be loaded.");
+                return;
+            }
+            const userDocRef = doc(db, `artifacts/${appId}/users/${uid}/progress`, 'lastQuizState');
+            try {
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const lastLevelId = data.lastLevelId;
+                    const lastQuestionIndex = data.lastQuestionIndex || 0; // Default to 0 if not set
+
+                    const lastLevel = levels.find(level => level.id === lastLevelId);
+                    if (lastLevel) {
+                        // Check if the saved index is within bounds of the current questions for that level
+                        const effectiveIndex = Math.min(lastQuestionIndex, lastLevel.questions.length);
+                        if (effectiveIndex < lastLevel.questions.length) {
+                            showModal(`እንኳን ደህና መጡ! የ${lastLevel.name} ጥያቄ ${effectiveIndex + 1} ከቀጠሉበት ይቀጥሉ።`);
+                            showQuiz(lastLevel, effectiveIndex);
+                        } else {
+                            // If saved index is past the end, start at beginning of that level
+                            showModal(`እንኳን ደህና መጡ! የ${lastLevel.name} ጥያቄዎችን አጠናቅቀዋል። እንደገና እንጀምር።`);
+                            showQuiz(lastLevel, 0);
+                        }
+                        console.log(`User ${uid} last quiz state loaded: Level ${lastLevelId}, Question ${effectiveIndex}`);
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading document: ", e);
+                showModal("የቀደመውን ሂደት መጫን አልተቻለም።");
+            }
+        }
+
+
+        // Get modal elements
+        const modal = document.getElementById('myModal');
+        const closeButton = document.querySelector('.close-button');
+        const modalOkButton = document.getElementById('modal-ok-button');
+
+        // Close modal when close button is clicked
+        closeButton.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when OK button is clicked
+        modalOkButton.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (firebaseEnabled) {
+                try {
+                    // Initialize Firebase
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    // Sign in anonymously or with custom token (MANDATORY for persistence)
+                    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    // Get the user ID after authentication
+                    userId = auth.currentUser?.uid || crypto.randomUUID();
+                    console.log("Firebase initialized. User ID:", userId);
+                    firebaseInitialized = true; // Set flag to true on success
+
+                } catch (error) {
+                    console.error("Error initializing Firebase services:", error);
+                    showModal("የFirebase አገልግሎቶችን ማስጀመር አልተሳካም። መተግበሪያው ያለ ሂደት ማስቀመጥ ይሰራል። ቋሚነትን ማንቃት ከፈለጉ፣ የFirebase ፕሮጀክትዎ በትክክል መዋቀሩን ያረጋግጡ።");
+                    firebaseInitialized = false; // Ensure flag is false on error
+                }
+            } else {
+                console.log("Firebase is not enabled (no configuration found). The app will run without saving/loading progress.");
+            }
+
+            // Always initialize the app logic, regardless of Firebase status
+            initApp();
+
+            // Load user progress ONLY if Firebase was successfully initialized
+            if (firebaseInitialized) {
+                loadUserProgress(userId);
+            }
+        });
+
+        function initApp() {
+            // Data structure for levels and questions
+            const levels = [
+                {
+                    name: "የመዋዕለ ሕፃናት ስፖርት",
+                    id: "kindergarten_sport",
+                    questions: [
+                        { question: "ኳስ ለመጫወት የትኛው የሰውነት ክፍል ነው የሚጠቅመን?", options: ["እግር", "እጅ", "ጭንቅላት", "ሆድ"], answer: "እግር" },
+                        { question: "ለመዋኘት የትኛውን ቦታ እንሄዳለን?", options: ["ሜዳ", "ጫካ", "ውሃ ውስጥ", "ተራራ"], answer: "ውሃ ውስጥ" },
+                        { question: "በሩጫ ውድድር ላይ ማን ነው መጀመሪያ የሚደርሰው?", options: ["ቀስ ብሎ የሚሮጥ", "ፈጣን ሯጭ", "የሚያወራ", "የሚቆም"], answer: "ፈጣን ሯጭ" },
+                        { question: "በቅርጫት ኳስ ስንት ተጫዋቾች በሜዳ ላይ አሉ?", options: ["3", "5", "7", "11"], answer: "5" },
+                        { question: "የቱ ስፖርት ነው ኳስ እና መረብ የሚጠቀመው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ቴኒስ", "መዋኘት"], answer: "ቴኒስ" },
+                        { question: "የትኛው ስፖርት ነው የበረዶ ላይ መንሸራተት ተብሎ የሚጠራው?", options: ["መዋኛ", "ቅርጫት ኳስ", "የበረዶ መንሸራተት", "ሩጫ"], answer: "የበረዶ መንሸራተት" },
+                        { question: "በእግር ኳስ ጨዋታ ላይ ግብ ጠባቂ ምን ይከላከልልናል?", options: ["ግብ", "ኳስ", "ተጫዋቾች", "ሜዳ"], answer: "ግብ" },
+                        { question: "ብስክሌት ለመንዳት የትኛው ክፍል ነው የምንጠቀመው?", options: ["እጅ", "እግር", "ጭንቅላት", "ሆድ"], answer: "እግር" },
+                        { question: "የቱ ስፖርት ነው የፈረስ ግልቢያ ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "የፈረስ ግልቢያ", "ቴኒስ"], answer: "የፈረስ ግልቢያ" },
+                        { question: "የቱ የሰውነት ክፍል ነው ገመድ ለመዝለል የሚጠቅመን?", options: ["እጅ", "እግር", "አፍ", "ዓይን"], answer: "እግር" },
+                        { question: "የትኛው ስፖርት ነው ብዙ መሮጥ የሚያስፈልገው?", options: ["ቼዝ", "ቴኒስ", "ማሪቶን", "መዋኛ"], answer: "ማሪቶን" },
+                        { question: "በቮሊቦል ውስጥ ኳሱን የምንመታው በየትኛው የሰውነት ክፍል ነው?", options: ["እግር", "እጅ", "ጭንቅላት", "ትከሻ"], answer: "እጅ" },
+                        { question: "የትኛው ስፖርት ነው በክረምት ወቅት የሚጫወተው?", options: ["እግር ኳስ", "መዋኛ", "የበረዶ ሆኪ", "ቅርጫት ኳስ"], answer: "የበረዶ ሆኪ" },
+                        { question: "ቦክስ ለመጫወት ምን እንጠቀማለን?", options: ["ኳስ", "ጓንት", "መረብ", "ዱላ"], answer: "ጓንት" },
+                        { question: "የቱ ስፖርት ነው 'ጎልፍ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ጎልፍ", "ቴኒስ"], answer: "ጎልፍ" },
+                        { question: "በውሃ ውስጥ ለመጥለቅ ምን እንለብሳለን?", options: ["ጃኬት", "መነጽር", "የዋና ልብስ", "ጫማ"], answer: "የዋና ልብስ" },
+                        { question: "የቱ ስፖርት ነው በገመድ መወዛወዝን የሚያካትት?", options: ["ሩጫ", "ገመድ መዝለል", "መዋኛ", "ብስክሌት"], answer: "ገመድ መዝለል" },
+                        { question: "የቱ ስፖርት ነው ከትግል ጋር የተያያዘ?", options: ["ቴኒስ", "ቦክስ", "መዋኛ", "እግር ኳስ"], answer: "ቦክስ" },
+                        { question: "የቱ ስፖርት ነው በሜዳ ላይ የሚካሄደው?", options: ["ቼዝ", "እግር ኳስ", "መዋኛ", "ጠረጴዛ ቴኒስ"], answer: "እግር ኳስ" },
+                        { question: "በጂምናስቲክስ ምን እናደርጋለን?", options: ["እንዋኛለን", "እንሮጣለን", "እንዘላለን", "እንዘረጋለን"], answer: "እንዘረጋለን" },
+                        { question: "የቱ ስፖርት ነው ኳስ በዱላ የምንመታበት?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ቤዝቦል", "ቮሊቦል"], answer: "ቤዝቦል" },
+                        { question: "የቱ ስፖርት ነው ብዙ ጡንቻ የሚያስፈልገው?", options: ["ቼዝ", "ክብደት ማንሳት", "ቴኒስ", "መዋኛ"], answer: "ክብደት ማንሳት" },
+                        { question: "የቱ ስፖርት ነው በፈረስ ላይ የሚደረገው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ፖሎ", "ቴኒስ"], answer: "ፖሎ" },
+                        { question: "በቀስት ውርወራ ምን እንጠቀማለን?", options: ["ኳስ", "ዱላ", "ቀስት", "መረብ"], answer: "ቀስት" },
+                        { question: "የትኛው ስፖርት ነው በፍጥነት መሮጥን የሚያካትት?", options: ["መራመድ", "ስፕሪንት", "ጎልፍ", "ቦውሊንግ"], answer: "ስፕሪንት" },
+                        { question: "በቴኒስ ውስጥ ኳሱን የምንመታው በምን ነው?", options: ["እጅ", "እግር", "ራኬት", "ዱላ"], answer: "ራኬት" },
+                        { question: "የቱ ስፖርት ነው የውሃ ፖሎ ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ውሃ ፖሎ", "ቅርጫት ኳስ", "ቴኒስ"], answer: "ውሃ ፖሎ" },
+                        { question: "የቱ ስፖርት ነው በቡድን የሚጫወተው?", options: ["ቴኒስ", "ቼዝ", "እግር ኳስ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "በአትሌቲክስ ውስጥ ምን እናደርጋለን?", options: ["እንዘምራለን", "እንሮጣለን", "እንበላለን", "እንተኛለን"], answer: "እንሮጣለን" },
+                        { question: "የቱ ስፖርት ነው የጠረጴዛ ቴኒስ ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ጠረጴዛ ቴኒስ", "ባድሚንተን", "ቮሊቦል"], answer: "ጠረጴዛ ቴኒስ" },
+                        { question: "የቱ ስፖርት ነው በውሃ ውስጥ እንቅስቃሴ የሚያካትት?", options: ["ሩጫ", "መዋኛ", "ብስክሌት", "ቦክስ"], answer: "መዋኛ" },
+                        { question: "የቱ ስፖርት ነው ክብደት ማንሳት የሚያካትት?", options: ["ቴኒስ", "ቅርጫት ኳስ", "ክብደት ማንሳት", "እግር ኳስ"], answer: "ክብደት ማንሳት" },
+                        { question: "የቱ ስፖርት ነው በበረዶ ላይ በቡድን የሚጫወተው?", options: ["የበረዶ መንሸራተት", "እግር ኳስ", "ቅርጫት ኳስ", "የበረዶ ሆኪ"], answer: "የበረዶ ሆኪ" },
+                        { question: "በአጥር ግጥሚያ ውስጥ ምን እንጠቀማለን?", options: ["ኳስ", "ሰይፍ", "ዱላ", "መረብ"], answer: "ሰይፍ" },
+                        { question: "የቱ ስፖርት ነው የፈረስ ጋላቢ ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ፖሎ", "የፈረስ ጋላቢ", "ቴኒስ"], answer: "የፈረስ ጋላቢ" },
+                        { question: "የትኛው ስፖርት ነው ትልቅ ገንዳ የሚያስፈልገው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "መዋኛ", "ቴኒስ"], answer: "መዋኛ" },
+                        { question: "የቱ ስፖርት ነው በአየር ውስጥ የሚደረገው?", options: ["መዋኛ", "እግር ኳስ", "ፓራሹቲንግ", "ቅርጫት ኳስ"], answer: "ፓራሹቲንግ" },
+                        { question: "የቱ ስፖርት ነው ኳስን በእጅ ወደ ቅርጫት የምንጥልበት?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ቴኒስ", "ቮሊቦል"], answer: "ቅርጫት ኳስ" },
+                        { question: "የቱ ስፖርት ነው ፈጣን ምላሽ የሚያስፈልገው?", options: ["ቼዝ", "ቦክስ", "ጎልፍ", "ቦውሊንግ"], answer: "ቦክስ" },
+                        { question: "የቱ ስፖርት ነው በበረዶ ላይ በስኬት የሚንሸራተቱበት?", options: ["መዋኛ", "እግር ኳስ", "የበረዶ ስኬቲንግ", "ቅርጫት ኳስ"], answer: "የበረዶ ስኬቲንግ" },
+                        { question: "በባድሚንተን ውስጥ ኳሱን የምንመታው በምን ነው?", options: ["እግር", "እጅ", "ራኬት", "ዱላ"], answer: "ራኬት" },
+                        { question: "የቱ ስፖርት ነው የቡድን ስራ የሚያስፈልገው?", options: ["ቴኒስ", "ቼዝ", "እግር ኳስ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "የቱ ስፖርት ነው የጡንቻ ጥንካሬ የሚያስፈልገው?", options: ["ሩጫ", "ክብደት ማንሳት", "መራመድ", "መዋኛ"], answer: "ክብደት ማንሳት" },
+                        { question: "የቱ ስፖርት ነው በክረምት የሚጫወተው እና ዱላ የሚጠቀመው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ስኪንግ", "መዋኛ"], answer: "ስኪንግ" },
+                        { question: "በሉጅ ውስጥ እንዴት እንጓዛለን?", options: ["መሮጥ", "መዋኘት", "መንሸራተት", "መብረር"], answer: "መንሸራተት" },
+                        { question: "የቱ ስፖርት ነው የፈረስ እና ዱላ የሚጠቀመው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ፖሎ", "ቴኒስ"], answer: "ፖሎ" },
+                        { question: "የቱ ስፖርት ነው በአየር ውስጥ በመወዛወዝ የሚደረገው?", options: ["መዋኛ", "እግር ኳስ", "ፓራግላይዲንግ", "ቅርጫት ኳስ"], answer: "ፓራግላይዲንግ" },
+                        { question: "የቱ ስፖርት ነው ትክክለኛነት የሚያስፈልገው?", options: ["ሩጫ", "ቀስት ውርወራ", "መዋኛ", "ቦክስ"], answer: "ቀስት ውርወራ" },
+                        { question: "የቱ ስፖርት ነው በጠረጴዛ ላይ የሚጫወተው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ጠረጴዛ ቴኒስ", "ቮሊቦል"], answer: "ጠረጴዛ ቴኒስ" }
+                    ]
+                },
+                {
+                    name: "የ KG 1 ስፖርት",
+                    id: "kg1_sport",
+                    questions: [
+                        { question: "በእግር ኳስ ጨዋታ ስንት ተጫዋቾች በእያንዳንዱ ቡድን ውስጥ አሉ?", options: ["7", "9", "11", "13"], answer: "11" },
+                        { question: "የቅርጫት ኳስ የትኛው ክፍል ነው የምንተኩስበት?", options: ["እግር", "እጅ", "ጭንቅላት", "ትከሻ"], answer: "እጅ" },
+                        { question: "በመዋኛ ውስጥ የትኛው ስትሮክ ነው ፈጣን የሆነው?", options: ["ቢራቢሮ", "ጀርባ", "ጡት", "ፍሪስታይል"], answer: "ፍሪስታይል" },
+                        { question: "የቴኒስ ኳስን ለመምታት ምን እንጠቀማለን?", options: ["እግር", "እጅ", "ራኬት", "ዱላ"], answer: "ራኬት" },
+                        { question: "የቱ ስፖርት ነው 'ቮሊቦል' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ቮሊቦል", "ቴኒስ"], answer: "ቮሊቦል" },
+                        { question: "በበረዶ ሆኪ ውስጥ ስንት ተጫዋቾች በእያንዳንዱ ቡድን ውስጥ አሉ?", options: ["4", "5", "6", "7"], answer: "6" },
+                        { question: "የትኛው ስፖርት ነው መከላከያ ራስ ቁር የሚያስፈልገው?", options: ["መዋኛ", "እግር ኳስ", "ብስክሌት", "ቴኒስ"], answer: "ብስክሌት" },
+                        { question: "የቱ ስፖርት ነው ኳስ እና የጎልፍ ዱላ የሚያስፈልገው?", options: ["ቴኒስ", "እግር ኳስ", "ጎልፍ", "ቅርጫት ኳስ"], answer: "ጎልፍ" },
+                        { question: "በሩጫ ውድድር ላይ የሩጫ ጫማ ምን ይጠቅመናል?", options: ["ለመብረር", "በፍጥነት ለመሮጥ", "ለመዋኘት", "ለመተኛት"], answer: "በፍጥነት ለመሮጥ" },
+                        { question: "የቱ ስፖርት ነው የቡድን ትብብር የሚያስፈልገው?", options: ["ቴኒስ", "ቼዝ", "እግር ኳስ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "በአጥር ግጥሚያ ውስጥ ዋናው መሳሪያ ምንድን ነው?", options: ["ኳስ", "ሰይፍ", "ዱላ", "መረብ"], answer: "ሰይፍ" },
+                        { question: "የቱ ስፖርት ነው 'ማሪቶን' ተብሎ የሚታወቀው?", options: ["አጭር ሩጫ", "ረጅም ሩጫ", "መዋኛ", "ብስክሌት"], answer: "ረጅም ሩጫ" },
+                        { question: "የቱ ስፖርት ነው የውሃ ፖሎ ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ውሃ ፖሎ", "ቴኒስ"], answer: "ውሃ ፖሎ" },
+                        { question: "በጁዶ ውስጥ ምን እንማራለን?", options: ["መሮጥ", "መዋኘት", "ራስን መከላከል", "መዝለል"], answer: "ራስን መከላከል" },
+                        { question: "የቱ ስፖርት ነው በፈረስ ላይ በኳስ የሚጫወተው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ፖሎ", "ቴኒስ"], answer: "ፖሎ" },
+                        { question: "የቱ ስፖርት ነው ከትክክለኛነት እና ከሰዓት ጋር የተያያዘ?", options: ["ሩጫ", "ቀስት ውርወራ", "መዋኛ", "ቦክስ"], answer: "ቀስት ውርወራ" },
+                        { question: "በአትሌቲክስ ውስጥ ምን አይነት ውድድሮች አሉ?", options: ["መዋኛ", "ሩጫ", "ብስክሌት", "ቴኒስ"], answer: "ሩጫ" },
+                        { question: "የቱ ስፖርት ነው 'ቤዝቦል' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ቤዝቦል", "ቮሊቦል"], answer: "ቤዝቦል" },
+                        { question: "የቱ ስፖርት ነው ብዙ ጥንካሬ የሚያስፈልገው?", options: ["ቼዝ", "ክብደት ማንሳት", "ቴኒስ", "መዋኛ"], answer: "ክብደት ማንሳት" },
+                        { question: "የቱ ስፖርት ነው 'ባድሚንተን' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ጠረጴዛ ቴኒስ", "ባድሚንተን", "ቮሊቦል"], answer: "ባድሚንተን" },
+                        { question: "በጂምናስቲክስ ውስጥ ምን አይነት መሳሪያዎች አሉ?", options: ["ኳስ", "ዱላ", "ባር", "መረብ"], answer: "ባር" },
+                        { question: "የቱ ስፖርት ነው የቡድን መንፈስ የሚያዳብር?", options: ["ቴኒስ", "ቼዝ", "እግር ኳስ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ ዋና ዋና ነገሮች?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "መዋኛ", "ቴኒስ"], answer: "መዋኛ" },
+                        { question: "በበረዶ ስኬቲንግ ውስጥ ምን እንጠቀማለን?", options: ["ጫማ", "ስኬት", "ዱላ", "ኳስ"], answer: "ስኬት" },
+                        { question: "የቱ ስፖርት ነው የአሜሪካ እግር ኳስ ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "አሜሪካን እግር ኳስ", "ቅርጫት ኳስ", "ቤዝቦል"], answer: "አሜሪካን እግር ኳስ" },
+                        { question: "በቦክስ ውስጥ ግባችን ምንድን ነው?", options: ["ኳስ መጣል", "ግብ ማስቆጠር", "ተቃዋሚን ማንኳኳት", "መሮጥ"], answer: "ተቃዋሚን ማንኳኳት" },
+                        { question: "የቱ ስፖርት ነው 'ስኬትቦርዲንግ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ስኬትቦርዲንግ", "ብስክሌት"], answer: "ስኬትቦርዲንግ" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ ሆኪ ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "የውሃ ውስጥ ሆኪ", "ቅርጫት ኳስ", "ቴኒስ"], answer: "የውሃ ውስጥ ሆኪ" },
+                        { question: "የቱ ስፖርት ነው ብዙ ፍጥነት የሚያስፈልገው?", options: ["ቼዝ", "ስፕሪንት", "ጎልፍ", "ቦውሊንግ"], answer: "ስፕሪንት" },
+                        { question: "በበረዶ መንሸራተት ውስጥ ምን እንጠቀማለን?", options: ["ቦርድ", "ስኪ", "ስኬት", "ኳስ"], answer: "ስኪ" },
+                        { question: "የቱ ስፖርት ነው የካያኪንግ ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ካያኪንግ", "ብስክሌት"], answer: "ካያኪንግ" },
+                        { question: "የቱ ስፖርት ነው በጎልፍ ኮርስ ላይ የሚካሄደው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ጎልፍ", "ቴኒስ"], answer: "ጎልፍ" },
+                        { question: "በአየር ውስጥ የሚደረግ ስፖርት የቱ ነው?", options: ["መዋኛ", "እግር ኳስ", "ፓራግላይዲንግ", "ቅርጫት ኳስ"], answer: "ፓራግላይዲንግ" },
+                        { question: "የቱ ስፖርት ነው የእጅ ኳስ ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "እጅ ኳስ", "ቅርጫት ኳስ", "ቴኒስ"], answer: "እጅ ኳስ" },
+                        { question: "በአጥር ግጥሚያ ውስጥ የትኛው ክፍል ነው የምንከላከለው?", options: ["እግር", "እጅ", "አካል", "ጭንቅላት"], answer: "አካል" },
+                        { question: "የቱ ስፖርት ነው በበረዶ ላይ የሚደረግ?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "የበረዶ ሸርተቴ", "መዋኛ"], answer: "የበረዶ ሸርተቴ" },
+                        { question: "የቱ ስፖርት ነው የጡንቻ ብቃት የሚያስፈልገው?", options: ["ቼዝ", "ጂምናስቲክስ", "ቴኒስ", "መዋኛ"], answer: "ጂምናስቲክስ" },
+                        { question: "የቱ ስፖርት ነው 'ሆኪ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ሆኪ", "ቴኒስ"], answer: "ሆኪ" },
+                        { question: "በፈረስ ግልቢያ ውስጥ ምን እንጠቀማለን?", options: ["ኳስ", "ዱላ", "ፈረስ", "መረብ"], answer: "ፈረስ" },
+                        { question: "የቱ ስፖርት ነው ብዙ ጽናት የሚያስፈልገው?", options: ["ስፕሪንት", "ማሪቶን", "ጎልፍ", "ቦውሊንግ"], answer: "ማሪቶን" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ መተንፈስን የሚያካትት?", options: ["ሩጫ", "መዋኛ", "ስኩባ ዳይቪንግ", "ብስክሌት"], answer: "ስኩባ ዳይቪንግ" },
+                        { question: "የቱ ስፖርት ነው በቡድን የሚጫወት እና ኳስ የሚጠቀመው?", options: ["ቴኒስ", "እግር ኳስ", "ቼዝ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "የቱ ስፖርት ነው 'ክብደት ማንሳት' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ቅርጫት ኳስ", "ክብደት ማንሳት", "እግር ኳስ"], answer: "ክብደት ማንሳት" },
+                        { question: "በቅርጫት ኳስ ውስጥ ግባችን ምንድን ነው?", options: ["ኳስ መምታት", "ግብ ማስቆጠር", "ኳስ ወደ ቅርጫት መጣል", "መሮጥ"], answer: "ኳስ ወደ ቅርጫት መጣል" },
+                        { question: "የቱ ስፖርት ነው 'ጂምናስቲክስ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ጂምናስቲክስ", "ብስክሌት"], answer: "ጂምናስቲክስ" },
+                        { question: "የቱ ስፖርት ነው 'ራግቢ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ራግቢ", "ቅርጫት ኳስ", "ቤዝቦል"], answer: "ራግቢ" },
+                        { question: "በቴኒስ ውስጥ ነጥብ እንዴት እናገኛለን?", options: ["ኳስ በመጣል", "ኳስ በመምታት", "ኳስ በመያዝ", "ኳስ በማለፍ"], answer: "ኳስ በመምታት" },
+                        { question: "የቱ ስፖርት ነው 'ክሪኬት' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ክሪኬት", "ቴኒስ"], answer: "ክሪኬት" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ ዳንስ ተብሎ የሚታወቀው?", options: ["መዋኛ", "እግር ኳስ", "ውሃ ውስጥ ዳንስ", "ቅርጫት ኳስ"], answer: "ውሃ ውስጥ ዳንስ" },
+                        { question: "የቱ ስፖርት ነው 'ታይኮንዶ' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ታይኮንዶ", "መዋኛ", "እግር ኳስ"], answer: "ታይኮንዶ" }
+                    ]
+                },
+                {
+                    name: "የ KG 2 ስፖርት",
+                    id: "kg2_sport",
+                    questions: [
+                        { question: "በእግር ኳስ ውስጥ ከቅጣት ምት ግብ ማስቆጠር ምን ይባላል?", options: ["ጎል", "ፔናሊቲ", "ፍፁም ቅጣት ምት", "ኦፍሳይድ"], answer: "ፍፁም ቅጣት ምት" },
+                        { question: "የቅርጫት ኳስ ጨዋታ ስንት ሩብ ክፍሎች አሉት?", options: ["2", "3", "4", "5"], answer: "4" },
+                        { question: "የቱ ስፖርት ነው የኦሎምፒክ መክፈቻ ስነ-ስርዓት አካል የሆነው?", options: ["እግር ኳስ", "መዋኛ", "የኦሎምፒክ ችቦ ማብራት", "ቴኒስ"], answer: "የኦሎምፒክ ችቦ ማብራት" },
+                        { question: "በቴኒስ ውስጥ 'ኤስ' (Ace) ምንድን ነው?", options: ["የጠፋ ኳስ", "የተገባ ኳስ", "ተቃዋሚ ሊመልሰው ያልቻለ አገልግሎት", "የተሳሳተ ምት"], answer: "ተቃዋሚ ሊመልሰው ያልቻለ አገልግሎት" },
+                        { question: "የቱ ስፖርት ነው ኳስ በጣቶች የሚመታበት?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ቮሊቦል", "ቴኒስ"], answer: "ቮሊቦል" },
+                        { question: "በአሜሪካን እግር ኳስ ውስጥ ዋናው ግብ ምንድን ነው?", options: ["ኳስ መጣል", "ግብ ማስቆጠር", "ንክኪ ማግኘት", "መሮጥ"], answer: "ንክኪ ማግኘት" },
+                        { question: "የቱ ስፖርት ነው 'ማርሻል አርትስ' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ቦክስ", "ጁዶ", "መዋኛ"], answer: "ጁዶ" },
+                        { question: "በስኬትቦርዲንግ ውስጥ ምን እንጠቀማለን?", options: ["ኳስ", "ቦርድ", "ስኬት", "ዱላ"], answer: "ቦርድ" },
+                        { question: "የቱ ስፖርት ነው በውሃ ውስጥ በዱላ የሚጫወተው?", options: ["እግር ኳስ", "የውሃ ሆኪ", "ቅርጫት ኳስ", "ቴኒስ"], answer: "የውሃ ሆኪ" },
+                        { question: "በጂምናስቲክስ ውስጥ ሚዛን ለመጠበቅ ምን እንጠቀማለን?", options: ["ኳስ", "ዱላ", "ሚዛን ምሰሶ", "ገመድ"], answer: "ሚዛን ምሰሶ" },
+                        { question: "የቱ ስፖርት ነው 'አይስ ስኬቲንግ' ተብሎ የሚታወቀው?", options: ["መዋኛ", "እግር ኳስ", "አይስ ስኬቲንግ", "ቅርጫት ኳስ"], answer: "አይስ ስኬቲንግ" },
+                        { question: "በቀስት ውርወራ ውስጥ ግባችን ምንድን ነው?", options: ["ኳስ መጣል", "ዒላማ መምታት", "መሮጥ", "መዋኘት"], answer: "ዒላማ መምታት" },
+                        { question: "የቱ ስፖርት ነው 'ክሮስ ካንትሪ ስኪንግ' ተብሎ የሚታወቀው?", options: ["የበረዶ ሸርተቴ", "ክሮስ ካንትሪ ስኪንግ", "የበረዶ ሆኪ", "ቦብልድ"], answer: "ክሮስ ካንትሪ ስኪንግ" },
+                        { question: "በሉጅ ውስጥ በምን አይነት መንገድ እንጓዛለን?", options: ["መሮጥ", "መዋኘት", "በበረዶ ላይ መንሸራተት", "መብረር"], answer: "በበረዶ ላይ መንሸራተት" },
+                        { question: "የቱ ስፖርት ነው የትሪአትሎን አካል የሆነው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ሩጫ", "ቴኒስ"], answer: "ሩጫ" },
+                        { question: "በአጥር ግጥሚያ ውስጥ የትኛው አካል ነው የሚመታው?", options: ["እጅ", "እግር", "አካል", "ጭንቅላት"], answer: "አካል" },
+                        { question: "የቱ ስፖርት ነው 'ካራቴ' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ካራቴ", "መዋኛ", "እግር ኳስ"], answer: "ካራቴ" },
+                        { question: "በፖሎ ውስጥ ምን እንጠቀማለን?", options: ["ኳስ", "ዱላ", "ፈረስ", "መረብ"], answer: "ፈረስ" },
+                        { question: "የቱ ስፖርት ነው 'ብስክሌት እሽቅድምድም' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ብስክሌት እሽቅድምድም", "ቦክስ"], answer: "ብስክሌት እሽቅድምድም" },
+                        { question: "የቱ ስፖርት ነው የቡድን ትብብር እና ስትራቴጂ የሚያስፈልገው?", options: ["ቴኒስ", "ቼዝ", "እግር ኳስ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "በውሃ ፖሎ ውስጥ ምን እንጠቀማለን?", options: ["ኳስ", "ዱላ", "መረብ", "የዋና ልብስ"], answer: "ኳስ" },
+                        { question: "የቱ ስፖርት ነው የጂምናስቲክስ ፍሎር ኤክሰርሳይዝ አካል የሆነው?", options: ["ሩጫ", "መዋኛ", "መዝለል", "ጂምናስቲክስ ፍሎር ኤክሰርሳይዝ"], answer: "ጂምናስቲክስ ፍሎር ኤክሰርሳይዝ" },
+                        { question: "በቦክስ ውስጥ ነጥብ እንዴት እናገኛለን?", options: ["ኳስ በመጣል", "መምታት", "ግብ በማስቆጠር", "መሮጥ"], answer: "መምታት" },
+                        { question: "የቱ ስፖርት ነው 'ራኬትቦል' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ራኬትቦል", "ባድሚንተን", "ቮሊቦል"], answer: "ራኬትቦል" },
+                        { question: "በክሪኬት ውስጥ 'ዊኬት' ምንድን ነው?", options: ["ኳስ", "ዱላ", "የድንጋይ ግብ", "ተጫዋች"], answer: "የድንጋይ ግብ" },
+                        { question: "የቱ ስፖርት ነው የክረምት ኦሎምፒክ አካል የሆነው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ስኪንግ", "መዋኛ"], answer: "ስኪንግ" },
+                        { question: "በአትሌቲክስ ውስጥ 'ሃርዲልስ' ምንድን ነው?", options: ["የሩጫ አይነት", "የመዝለል አይነት", "የሚዘለሉ እንቅፋቶች", "የሚወረወሩ ነገሮች"], answer: "የሚዘለሉ እንቅፋቶች" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ ራግቢ ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ውሃ ውስጥ ራግቢ", "ቅርጫት ኳስ", "ቴኒስ"], answer: "ውሃ ውስጥ ራግቢ" },
+                        { question: "በታይኮንዶ ውስጥ ምን እንማራለን?", options: ["መሮጥ", "መዋኘት", "እግሮችን መጠቀም", "መዝለል"], answer: "እግሮችን መጠቀም" },
+                        { question: "የቱ ስፖርት ነው 'ፓራሹቲንግ' ተብሎ የሚታወቀው?", options: ["መዋኛ", "እግር ኳስ", "ፓራሹቲንግ", "ቅርጫት ኳስ"], answer: "ፓራሹቲንግ" },
+                        { question: "በቤዝቦል ውስጥ 'ሆም ሩን' ምንድን ነው?", options: ["የጠፋ ኳስ", "የተገባ ኳስ", "ኳስን በመምታት ሁሉንም ቤዝ ማጠናቀቅ", "የተሳሳተ ምት"], answer: "ኳስን በመምታት ሁሉንም ቤዝ ማጠናቀቅ" },
+                        { question: "የቱ ስፖርት ነው 'ትሪአትሎን' ተብሎ የሚታወቀው?", options: ["ሩጫ ብቻ", "መዋኛ ብቻ", "ሩጫ፣ ብስክሌት፣ መዋኛ", "ብስክሌት ብቻ"], answer: "ሩጫ፣ ብስክሌት፣ መዋኛ" },
+                        { question: "በቴኒስ ውስጥ 'ሎብ' ምንድን ነው?", options: ["የኃይል ምት", "ከፍተኛ እና ጥልቅ ምት", "ቀጥተኛ ምት", "የተሳሳተ ምት"], answer: "ከፍተኛ እና ጥልቅ ምት" },
+                        { question: "የቱ ስፖርት ነው 'ዶጅቦል' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ዶጅቦል", "ቅርጫት ኳስ", "ቴኒስ"], answer: "ዶጅቦል" },
+                        { question: "የቱ ስፖርት ነው በአንድ ሰው ብቻ የሚጫወተው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ቴኒስ (ነጠላ)", "ቮሊቦል"], answer: "ቴኒስ (ነጠላ)" },
+                        { question: "በአትሌቲክስ ውስጥ 'ሾትፑት' ምንድን ነው?", options: ["የመሮጥ አይነት", "የመዝለል አይነት", "ከባድ ኳስ መወርወር", "የሚወረወር ዱላ"], answer: "ከባድ ኳስ መወርወር" },
+                        { question: "የቱ ስፖርት ነው 'ስኖውቦርዲንግ' ተብሎ የሚታወቀው?", options: ["የበረዶ ሸርተቴ", "ስኖውቦርዲንግ", "የበረዶ ሆኪ", "ቦብልድ"], answer: "ስኖውቦርዲንግ" },
+                        { question: "በጎልፍ ውስጥ 'በርዲ' ምንድን ነው?", options: ["ከፓር በላይ ነጥብ", "ከፓር በታች ነጥብ", "ከፓር ጋር እኩል ነጥብ", "የጠፋ ኳስ"], answer: "ከፓር በታች ነጥብ" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ መተንፈስን የሚያካትት እና መሳሪያ የሚያስፈልገው?", options: ["መዋኛ", "ስኖርከል", "ስኩባ ዳይቪንግ", "ዳይቪንግ"], answer: "ስኩባ ዳይቪንግ" },
+                        { question: "የቱ ስፖርት ነው 'ኩንግ ፉ' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ኩንግ ፉ", "መዋኛ", "እግር ኳስ"], answer: "ኩንግ ፉ" },
+                        { question: "በብስክሌት እሽቅድምድም ውስጥ የቡድን ስራ ምን ያህል አስፈላጊ ነው?", options: ["በጣም አስፈላጊ አይደለም", "አልፎ አልፎ አስፈላጊ", "በጣም አስፈላጊ", "በጭራሽ አስፈላጊ አይደለም"], answer: "በጣም አስፈላጊ" },
+                        { question: "የቱ ስፖርት ነው 'አርቸሪ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "ቀስት ውርወራ", "መዋኛ", "ቦክስ"], answer: "ቀስት ውርወራ" },
+                        { question: "በቮሊቦል ውስጥ ኳሱን ከመረብ በላይ ለማሳለፍ ምን እናደርጋለን?", options: ["መጣል", "መምታት", "መያዝ", "መሮጥ"], answer: "መምታት" },
+                        { question: "የቱ ስፖርት ነው 'የክረምት ባያትሎን' ተብሎ የሚታወቀው?", options: ["ስኪንግ", "የክረምት ባያትሎን", "የበረዶ ሆኪ", "ቦብልድ"], answer: "የክረምት ባያትሎን" },
+                        { question: "በጂምናስቲክስ ውስጥ 'ሳልቶ' ምንድን ነው?", options: ["መሮጥ", "መዝለል", "መገልበጥ", "መዘርጋት"], answer: "መገልበጥ" },
+                        { question: "የቱ ስፖርት ነው 'ባስኬትቦል' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ቴኒስ", "ቮሊቦል"], answer: "ቅርጫት ኳስ" },
+                        { question: "የቱ ስፖርት ነው ፈረስ እና ኳስ የሚጠቀመው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ፖሎ", "ቴኒስ"], answer: "ፖሎ" },
+                        { question: "የቱ ስፖርት ነው 'ፓርኩር' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ፓርኩር", "ብስክሌት"], answer: "ፓርኩር" },
+                        { question: "የቱ ስፖርት ነው 'የውሃ ውስጥ መተንፈሻ' የሚያስፈልገው?", options: ["መዋኛ", "ስኖርከል", "ስኩባ ዳይቪንግ", "ዳይቪንግ"], answer: "ስኖርከል" },
+                        { question: "የቱ ስፖርት ነው በጠረጴዛ ላይ በትንሽ ኳስ የሚጫወተው?", options: ["ቴኒስ", "ጠረጴዛ ቴኒስ", "ባድሚንተን", "ቮሊቦል"], answer: "ጠረጴዛ ቴኒስ" }
+                    ]
+                },
+                {
+                    name: "የ KG 3 ስፖርት",
+                    id: "kg3_sport",
+                    questions: [
+                        { question: "የኦሎምፒክ ቀለበቶች ስንት ናቸው?", options: ["3", "4", "5", "6"], answer: "5" },
+                        { question: "የቱ ስፖርት ነው 'ፉትቦል' ተብሎ የሚታወቀው?", options: ["ቅርጫት ኳስ", "እግር ኳስ", "ቴኒስ", "ቮሊቦል"], answer: "እግር ኳስ" },
+                        { question: "በቅርጫት ኳስ ውስጥ 'ትሪፕል ደብል' ምንድን ነው?", options: ["3 ነጥብ", "3 ስህተቶች", "በ3 ምድቦች ባለ ሁለት አሃዝ ቁጥር", "3 ጎሎች"], answer: "በ3 ምድቦች ባለ ሁለት አሃዝ ቁጥር" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ ባሌት ተብሎ የሚታወቀው?", options: ["መዋኛ", "ውሃ ውስጥ ባሌት", "ዳይቪንግ", "ውሃ ፖሎ"], answer: "ውሃ ውስጥ ባሌት" },
+                        { question: "በሩጫ ውድድር ላይ የ'ፎልስ ስታርት' ማለት ምን ማለት ነው?", options: ["በትክክል መጀመር", "ከመነሻ ምልክት በፊት መጀመር", "መውደቅ", "ቀስ ብሎ መጀመር"], answer: "ከመነሻ ምልክት በፊት መጀመር" },
+                        // Placeholder for the remaining 45 questions for KG 3 Sport
+                        // Please add 45 more questions here for 'የ KG 3 ስፖርት' to reach 50 questions.
+                        { question: "የትኛው ስፖርት ነው የቡድን ትብብር እና ተዋረድ የሚያስፈልገው?", options: ["ቴኒስ", "ቼዝ", "ራግቢ", "ጎልፍ"], answer: "ራግቢ" },
+                        { question: "በቴኒስ ውስጥ 'ግራንድ ስላም' ውድድሮች የቱ ናቸው?", options: ["አንድ ውድድር", "ሁለት ውድድሮች", "አራት ዋና ዋና ውድድሮች", "ብዙ ውድድሮች"], answer: "አራት ዋና ዋና ውድድሮች" },
+                        { question: "የቱ ስፖርት ነው 'ቢሊያርድስ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ቢሊያርድስ", "ቴኒስ"], answer: "ቢሊያርድስ" },
+                        { question: "በጂምናስቲክስ ውስጥ 'ፍሊፕ' ምንድን ነው?", options: ["መሮጥ", "መዝለል", "በአየር ላይ መሽከርከር", "መዘርጋት"], answer: "በአየር ላይ መሽከርከር" },
+                        { question: "የቱ ስፖርት ነው በክረምት ወቅት በበረዶ ላይ በቡድን የሚጫወተው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ቦብልድ", "መዋኛ"], answer: "ቦብልድ" },
+                        { question: "የቱ ስፖርት ነው ኳስ በዱላ በመምታት ወደ ጉድጓድ ማስገባት?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ጎልፍ", "ቴኒስ"], answer: "ጎልፍ" },
+                        { question: "በቦክስ ውስጥ የድል አይነቶች ምንድን ናቸው?", options: ["ግብ ማስቆጠር", "ኳስ መጣል", "በነጥብ ወይም በኖካውት ማሸነፍ", "መሮጥ"], answer: "በነጥብ ወይም በኖካውት ማሸነፍ" },
+                        { question: "የቱ ስፖርት ነው 'አይኪዶ' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "አይኪዶ", "መዋኛ", "እግር ኳስ"], answer: "አይኪዶ" },
+                        { question: "በአትሌቲክስ ውስጥ 'ጃቬሊን ትሮው' ምንድን ነው?", options: ["የመሮጥ አይነት", "የመዝለል አይነት", "ጦር መወርወር", "ክብደት ማንሳት"], answer: "ጦር መወርወር" },
+                        { question: "የቱ ስፖርት ነው በበረዶ ላይ በመርከብ የሚደረግ?", options: ["የበረዶ ሸርተቴ", "አይስ ሴይሊንግ", "የበረዶ ሆኪ", "ቦብልድ"], answer: "አይስ ሴይሊንግ" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ ራግቢ ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ውሃ ውስጥ ራግቢ", "ቅርጫት ኳስ", "ቴኒስ"], answer: "ውሃ ውስጥ ራግቢ" },
+                        { question: "በታይኮንዶ ውስጥ ዋናው ትኩረት በምን ላይ ነው?", options: ["እጅ", "እግር", "ጭንቅላት", "ትከሻ"], answer: "እግር" },
+                        { question: "የቱ ስፖርት ነው 'ራፍቲንግ' ተብሎ የሚታወቀው?", options: ["መዋኛ", "እግር ኳስ", "ራፍቲንግ", "ቅርጫት ኳስ"], answer: "ራፍቲንግ" },
+                        { question: "በቤዝቦል ውስጥ የ'ፒቸር' ሚና ምንድን ነው?", options: ["ኳስ መምታት", "ኳስ መወርወር", "መሮጥ", "ግብ መጠበቅ"], answer: "ኳስ መወርወር" },
+                        { question: "የቱ ስፖርት ነው 'አትሌቲክስ' የሚባለው?", options: ["ሩጫ", "መዋኛ", "ብዙ ስፖርቶች", "ብስክሌት"], answer: "ብዙ ስፖርቶች" },
+                        { question: "የቱ ስፖርት ነው የጠረጴዛ ቴኒስ ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ጠረጴዛ ቴኒስ", "ባድሚንተን", "ቮሊቦል"], answer: "ጠረጴዛ ቴኒስ" },
+                        { question: "የቱ ስፖርት ነው በበረዶ ላይ በሁለት ሰዎች የሚደረግ?", options: ["የበረዶ ሸርተቴ", "ስኪ ዳብልስ", "የበረዶ ሆኪ", "ቦብልድ"], answer: "ስኪ ዳብልስ" },
+                        { question: "በጎልፍ ውስጥ 'ቦጊ' ምንድን ነው?", options: ["ከፓር በላይ ነጥብ", "ከፓር በታች ነጥብ", "ከፓር ጋር እኩል ነጥብ", "የጠፋ ኳስ"], answer: "ከፓር በላይ ነጥብ" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ ዳንስ እና ሙዚቃ የሚያካትት?", options: ["መዋኛ", "ሲንክሮናይዝድ ስዊሚንግ", "ስኩባ ዳይቪንግ", "ዳይቪንግ"], answer: "ሲንክሮናይዝድ ስዊሚንግ" },
+                        { question: "የቱ ስፖርት ነው 'ጁጂትሱ' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ጁጂትሱ", "መዋኛ", "እግር ኳስ"], answer: "ጁጂትሱ" },
+                        { question: "በብስክሌት ውስጥ 'ፔሎቶን' ምንድን ነው?", options: ["አንድ ብስክሌት", "አንድ ብስክሌት ነጂ", "የብስክሌት ነጂዎች ቡድን", "የብስክሌት ውድድር"], answer: "የብስክሌት ነጂዎች ቡድን" },
+                        { question: "የቱ ስፖርት ነው 'ፌንሲንግ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "ቀስት ውርወራ", "ፌንሲንግ", "ቦክስ"], answer: "ፌንሲንግ" },
+                        { question: "በቮሊቦል ውስጥ 'ብሎክ' ምንድን ነው?", options: ["ኳስ መጣል", "ኳስን ማቆም", "ግብ ማስቆጠር", "መሮጥ"], answer: "ኳስን ማቆም" },
+                        { question: "የቱ ስፖርት ነው የክረምት ኦሎምፒክ አካል የሆነው እና በበረዶ ላይ የሚደረግ?", options: ["ስኪንግ", "ከርሊንግ", "የበረዶ ሆኪ", "ቦብልድ"], answer: "ከርሊንግ" },
+                        { question: "በጂምናስቲክስ ውስጥ 'ባላንስ ቢም' ምንድን ነው?", options: ["የመሮጫ መንገድ", "የሚዘለል መሳሪያ", "ሚዛን የሚጠበቅበት ጠባብ ምሰሶ", "የሚወዛወዝ ገመድ"], answer: "ሚዛን የሚጠበቅበት ጠባብ ምሰሶ" },
+                        { question: "የቱ ስፖርት ነው 'ካኖይንግ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ካኖይንግ", "ብስክሌት"], answer: "ካኖይንግ" },
+                        { question: "የቱ ስፖርት ነው በፈረስ ላይ በፖሎ ዱላ የሚጫወተው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ፖሎ", "ቴኒስ"], answer: "ፖሎ" },
+                        { question: "የቱ ስፖርት ነው 'ባድሚንተን' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ጠረጴዛ ቴኒስ", "ባድሚንተን", "ቮሊቦል"], answer: "ባድሚንተን" },
+                        { question: "በአትሌቲክስ ውስጥ 'ረጅም ዝላይ' ምንድን ነው?", options: ["ሩጫ", "ርዝመት መዝለል", "ቁመት መዝለል", "መወርወር"], answer: "ርዝመት መዝለል" },
+                        { question: "የቱ ስፖርት ነው 'ፓራግላይዲንግ' ተብሎ የሚታወቀው?", options: ["መዋኛ", "እግር ኳስ", "ፓራግላይዲንግ", "ቅርጫት ኳስ"], answer: "ፓራግላይዲንግ" },
+                        { question: "የቱ ስፖርት ነው 'ውሃ ስኪንግ' ተብሎ የሚታወቀው?", options: ["መዋኛ", "ውሃ ስኪንግ", "ስኖርከል", "ዳይቪንግ"], answer: "ውሃ ስኪንግ" },
+                        { question: "በቦክስ ውስጥ 'አፐርከት' ምንድን ነው?", options: ["ወደፊት የሚመታ", "ወደ ላይ የሚመታ", "ጎን የሚመታ", "ወደ ታች የሚመታ"], answer: "ወደ ላይ የሚመታ" },
+                        { question: "የቱ ስፖርት ነው 'ዳርትስ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ዳርትስ", "ቴኒስ"], answer: "ዳርትስ" },
+                        { question: "የቱ ስፖርት ነው የቡድን ትብብር እና ኳስን በእጅ ማሻገር የሚያስፈልገው?", options: ["ቴኒስ", "እጅ ኳስ", "ቼዝ", "ጎልፍ"], answer: "እጅ ኳስ" },
+                        { question: "የቱ ስፖርት ነው የጡንቻ ብቃት እና ተለዋዋጭነት የሚያስፈልገው?", options: ["ሩጫ", "ክብደት ማንሳት", "ጂምናስቲክስ", "መዋኛ"], answer: "ጂምናስቲክስ" },
+                        { question: "የቱ ስፖርት ነው 'የበረዶ ሆኪ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "የበረዶ ሆኪ", "ቴኒስ"], answer: "የበረዶ ሆኪ" },
+                        { question: "በቀስት ውርወራ ውስጥ 'ቡልስ አይ' ምንድን ነው?", options: ["የዒላማው ውጪ", "የዒላማው መሃል", "የተሳሳተ ምት", "የጠፋ ቀስት"], answer: "የዒላማው መሃል" },
+                        { question: "የቱ ስፖርት ነው 'ስኬትቦርዲንግ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ስኬትቦርዲንግ", "ብስክሌት"], answer: "ስኬትቦርዲንግ" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ ዋና ዋና ነገሮች እና ፍጥነት የሚያስፈልገው?", options: ["መዋኛ", "ውሃ ፖሎ", "ስኩባ ዳይቪንግ", "ዳይቪንግ"], answer: "ውሃ ፖሎ" },
+                        { question: "የቱ ስፖርት ነው 'ዊንድሰርፊንግ' ተብሎ የሚታወቀው?", options: ["መዋኛ", "ዊንድሰርፊንግ", "ካያኪንግ", "ጀልባ"], answer: "ዊንድሰርፊንግ" },
+                        { question: "በቴኒስ ውስጥ 'ቮሊ' ምንድን ነው?", options: ["ኳስ ከወደቀች በኋላ መምታት", "ኳስ ከመውደቋ በፊት መምታት", "የተሳሳተ ምት", "ኳስ ማጣት"], answer: "ኳስ ከመውደቋ በፊት መምታት" },
+                        { question: "የቱ ስፖርት ነው 'ኩዶ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ኩዶ", "ቴኒስ"], answer: "ኩዶ" },
+                        { question: "በብስክሌት ውድድር ውስጥ 'ስፕሪንት' ምንድን ነው?", options: ["ረጅም ርቀት", "በጣም ፈጣን የመጨረሻ ሩጫ", "ቀስ ብሎ መንዳት", "መቆም"], answer: "በጣም ፈጣን የመጨረሻ ሩጫ" },
+                        { question: "የቱ ስፖርት ነው 'አውሮፕላን ዳይቪንግ' ተብሎ የሚታወቀው?", options: ["መዋኛ", "አውሮፕላን ዳይቪንግ", "ፓራሹቲንግ", "ብስክሌት"], answer: "አውሮፕላን ዳይቪንግ" },
+                        { question: "የቱ ስፖርት ነው የፈረስ እና የጦር ውርወራን የሚያካትት?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ጃቬሊን", "ፖሎ"], answer: "ጃቬሊን" },
+                        { question: "የቱ ስፖርት ነው 'ስኩዋሽ' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ስኩዋሽ", "ባድሚንተን", "ቮሊቦል"], answer: "ስኩዋሽ" },
+                        { question: "የቱ ስፖርት ነው በቡድን የሚጫወተው እና ኳስን በእግር የሚያስገባ?", options: ["ቴኒስ", "እግር ኳስ", "ቼዝ", "ጎልፍ"], answer: "እግር ኳስ" }
+                    ]
+                },
+                {
+                    name: "የ 1ኛ ክፍል ስፖርት",
+                    id: "1st_grade_sport",
+                    questions: [
+                        { question: "የኦሎምፒክ መሪ ቃል ምንድን ነው?", options: ["ፈጣን፣ ከፍ ያለ፣ ጠንካራ", "ጤና፣ ብርታት፣ ደስታ", "ሰላም፣ አንድነት፣ ፍቅር", "ድል፣ ዝና፣ ክብር"], answer: "ፈጣን፣ ከፍ ያለ፣ ጠንካራ" },
+                        { question: "በእግር ኳስ ውስጥ 'ኦፍሳይድ' ህግ ምንድን ነው?", options: ["ኳስ ከሜዳ ውጪ መሄድ", "አጥቂ ተጫዋች ከመከላከያ ተጫዋቾች ኋላ ማለፍ", "ኳስ ወደ ግብ መግባት", "ተከላካይ ተጫዋች ኳስ መንጠቅ"], answer: "አጥቂ ተጫዋች ከመከላከያ ተጫዋቾች ኋላ ማለፍ" },
+                        { question: "የቅርጫት ኳስ ታዋቂው ተጫዋች ሚካኤል ጆርዳን የትኛውን ቡድን ነው የመራው?", options: ["ሎስ አንጀለስ ሌከርስ", "ቺካጎ ቡልስ", "ቦስተን ሴልቲክስ", "ጎልደን ስቴት ዎሪየርስ"], answer: "ቺካጎ ቡልስ" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ ዳይቪንግ እና ጥልቅ መዋኘትን የሚያካትት?", options: ["መዋኛ", "ስኩባ ዳይቪንግ", "ስኖርከል", "ውሃ ፖሎ"], answer: "ስኩባ ዳይቪንግ" },
+                        { question: "የቴኒስ የፍርድ ቤት አይነቶች ስንት ናቸው?", options: ["2", "3", "4", "5"], answer: "3" },
+                        // Placeholder for the remaining 45 questions for 1st Grade Sport
+                        // Please add 45 more questions here for 'የ 1ኛ ክፍል ስፖርት' to reach 50 questions.
+                        { question: "በቮሊቦል ውስጥ 'ስፓይክ' ምንድን ነው?", options: ["ኳስ መጣል", "ኳስ በኃይል መምታት", "ኳስ ማቆም", "ኳስ ማለፍ"], answer: "ኳስ በኃይል መምታት" },
+                        { question: "የቱ ስፖርት ነው 'እጅ ኳስ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "እጅ ኳስ", "ቅርጫት ኳስ", "ቴኒስ"], answer: "እጅ ኳስ" },
+                        { question: "የቱ ስፖርት ነው 'ክብደት ማንሳት' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ቅርጫት ኳስ", "ክብደት ማንሳት", "እግር ኳስ"], answer: "ክብደት ማንሳት" },
+                        { question: "በበረዶ ሆኪ ውስጥ 'ፓክ' ምንድን ነው?", options: ["ኳስ", "ጠፍጣፋ ዲስክ", "ዱላ", "መረብ"], answer: "ጠፍጣፋ ዲስክ" },
+                        { question: "የቱ ስፖርት ነው የቡድን ትብብር እና ኳስ በእግር ማሻገር የሚያስፈልገው?", options: ["ቴኒስ", "እግር ኳስ", "ቼዝ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "በአጥር ግጥሚያ ውስጥ የመከላከያ ልብስ ለምን ይጠቅማል?", options: ["ለቅዝቃዜ", "ለጥቃት", "ለማጌጥ", "ለመደበቅ"], answer: "ለጥቃት" },
+                        { question: "የቱ ስፖርት ነው 'ረጅም ሩጫ' ተብሎ የሚታወቀው?", options: ["ስፕሪንት", "ማሪቶን", "ጎልፍ", "ቦውሊንግ"], answer: "ማሪቶን" },
+                        { question: "የቱ ስፖርት ነው 'ውሃ ፖሎ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ውሃ ፖሎ", "ቴኒስ"], answer: "ውሃ ፖሎ" },
+                        { question: "በጁዶ ውስጥ 'ታታሚ' ምንድን ነው?", options: ["ተጋዳላይ", "ምንጣፍ", "ደንብ", "አሰልጣኝ"], answer: "ምንጣፍ" },
+                        { question: "የቱ ስፖርት ነው የፈረስ ግልቢያ እና ዒላማ መምታት የሚያካትት?", options: ["እግር ኳስ", "ፖሎ", "ቀስት ግልቢያ", "ቴኒስ"], answer: "ቀስት ግልቢያ" },
+                        { question: "በቀስት ውርወራ ውስጥ 'ኩዊቨር' ምንድን ነው?", options: ["ቀስት", "ቀስቶችን የሚይዝ ቦርሳ", "ዒላማ", "ቀስት መወርወሪያ"], answer: "ቀስቶችን የሚይዝ ቦርሳ" },
+                        { question: "የቱ ስፖርት ነው በአትሌቲክስ ውስጥ የሚደረግ እና መዝለልን የሚያካትት?", options: ["ሩጫ", "ረጅም ዝላይ", "ውርወራ", "መዋኛ"], answer: "ረጅም ዝላይ" },
+                        { question: "የቱ ስፖርት ነው 'ቤዝቦል' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ቤዝቦል", "ቮሊቦል"], answer: "ቤዝቦል" },
+                        { question: "የቱ ስፖርት ነው ጡንቻዎችን እና ጥንካሬን የሚያዳብር?", options: ["ቼዝ", "ክብደት ማንሳት", "ቴኒስ", "መዋኛ"], answer: "ክብደት ማንሳት" },
+                        { question: "የቱ ስፖርት ነው 'ባድሚንተን' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ጠረጴዛ ቴኒስ", "ባድሚንተን", "ቮሊቦል"], answer: "ባድሚንተን" },
+                        { question: "በጂምናስቲክስ ውስጥ 'ቫውልት' ምንድን ነው?", options: ["መሮጥ", "መዝለል", "አንድ አይነት መሳሪያ", "መዘርጋት"], answer: "አንድ አይነት መሳሪያ" },
+                        { question: "የቱ ስፖርት ነው የቡድን መንፈስ እና ስትራቴጂ የሚያዳብር?", options: ["ቴኒስ", "ቼዝ", "እግር ኳስ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ እንቅስቃሴ እና ፍጥነት የሚያካትት?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "መዋኛ", "ቴኒስ"], answer: "መዋኛ" },
+                        { question: "በበረዶ ስኬቲንግ ውስጥ 'አክሰል' ምንድን ነው?", options: ["ቀጥታ መንሸራተት", "አንድ አይነት ዝላይ", "መሽከርከር", "መውደቅ"], answer: "አንድ አይነት ዝላይ" },
+                        { question: "የቱ ስፖርት ነው 'አሜሪካን ፉትቦል' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "አሜሪካን ፉትቦል", "ቅርጫት ኳስ", "ቤዝቦል"], answer: "አሜሪካን ፉትቦል" },
+                        { question: "በቦክስ ውስጥ 'ኖካውት' (KO) ምንድን ነው?", options: ["አጭር ምት", "ተቃዋሚን ሙሉ በሙሉ ማንኳኳት", "ነጥብ ማግኘት", "ህግ መጣስ"], answer: "ተቃዋሚን ሙሉ በሙሉ ማንኳኳት" },
+                        { question: "የቱ ስፖርት ነው 'ፓርኩር' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ፓርኩር", "ብስክሌት"], answer: "ፓርኩር" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ ሆኪ ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "የውሃ ውስጥ ሆኪ", "ቅርጫት ኳስ", "ቴኒስ"], answer: "የውሃ ውስጥ ሆኪ" },
+                        { question: "የቱ ስፖርት ነው 'ስፕሪንት ሩጫ' ተብሎ የሚታወቀው?", options: ["ረጅም ሩጫ", "በጣም አጭር እና ፈጣን ሩጫ", "መካከለኛ ሩጫ", "መራመድ"], answer: "በጣም አጭር እና ፈጣን ሩጫ" },
+                        { question: "በበረዶ መንሸራተት ውስጥ 'አልፓይን' ምንድን ነው?", options: ["የጠፍጣፋ መሬት ስኪንግ", "የተራራ ቁልቁል ስኪንግ", "የቡድን ስኪንግ", "የሩጫ ስኪንግ"], answer: "የተራራ ቁልቁል ስኪንግ" },
+                        { question: "የቱ ስፖርት ነው 'ሮዊንግ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ሮዊንግ", "ብስክሌት"], answer: "ሮዊንግ" },
+                        { question: "የቱ ስፖርት ነው በጎልፍ ውስጥ 'ፑቲንግ' የሚባለው?", options: ["ኳስን ከሩቅ መምታት", "ኳስን ወደ ጉድጓዱ ማስገባት", "ኳስ ማጣት", "ኳስን ማወዛወዝ"], answer: "ኳስን ወደ ጉድጓዱ ማስገባት" },
+                        { question: "የቱ ስፖርት ነው 'ፓራግላይዲንግ' ተብሎ የሚታወቀው?", options: ["መዋኛ", "እግር ኳስ", "ፓራግላይዲንግ", "ቅርጫት ኳስ"], answer: "ፓራግላይዲንግ" },
+                        { question: "የቱ ስፖርት ነው 'እጅ ኳስ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "እጅ ኳስ", "ቅርጫት ኳስ", "ቴኒስ"], answer: "እጅ ኳስ" },
+                        { question: "በአጥር ግጥሚያ ውስጥ 'አስልት' ምንድን ነው?", options: ["ዳኛ", "ተመልካች", "ተወዳዳሪ", "አሰልጣኝ"], answer: "ተወዳዳሪ" },
+                        { question: "የቱ ስፖርት ነው 'የበረዶ መንሸራተት' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "የበረዶ መንሸራተት", "መዋኛ"], answer: "የበረዶ መንሸራተት" },
+                        { question: "የቱ ስፖርት ነው 'ጂምናስቲክስ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ጂምናስቲክስ", "ብስክሌት"], answer: "ጂምናስቲክስ" },
+                        { question: "የቱ ስፖርት ነው 'ሆኪ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ሆኪ", "ቴኒስ"], answer: "ሆኪ" },
+                        { question: "በፈረስ ግልቢያ ውስጥ 'ጅግ' ምንድን ነው?", options: ["የፈረስ አይነት", "ፈረስ የሚነዳበት መንገድ", "የፈረስ ውድድር", "የፈረስ ምግብ"], answer: "ፈረስ የሚነዳበት መንገድ" },
+                        { question: "የቱ ስፖርት ነው 'ትሪአትሎን' ተብሎ የሚታወቀው?", options: ["ሩጫ ብቻ", "መዋኛ ብቻ", "ሩጫ፣ ብስክሌት፣ መዋኛ", "ብስክሌት ብቻ"], answer: "ሩጫ፣ ብስክሌት፣ መዋኛ" },
+                        { question: "የቱ ስፖርት ነው 'ውሃ ውስጥ መተንፈስ' የሚያስፈልገው?", options: ["መዋኛ", "ስኖርከል", "ስኩባ ዳይቪንግ", "ዳይቪንግ"], answer: "ስኩባ ዳይቪንግ" },
+                        { question: "የቱ ስፖርት ነው በቡድን የሚጫወት እና ኳስ የሚጠቀመው?", options: ["ቴኒስ", "እግር ኳስ", "ቼዝ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "የቱ ስፖርት ነው 'ክብደት ማንሳት' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ቅርጫት ኳስ", "ክብደት ማንሳት", "እግር ኳስ"], answer: "ክብደት ማንሳት" },
+                        { question: "በቅርጫት ኳስ ውስጥ 'ደንክ' ምንድን ነው?", options: ["ኳስ መጣል", "ኳስ ወደ ቅርጫት በኃይል ማስገባት", "ግብ ማስቆጠር", "መሮጥ"], answer: "ኳስ ወደ ቅርጫት በኃይል ማስገባት" },
+                        { question: "የቱ ስፖርት ነው 'ጂምናስቲክስ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ጂምናስቲክስ", "ብስክሌት"], answer: "ጂምናስቲክስ" },
+                        { question: "የቱ ስፖርት ነው 'ራግቢ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ራግቢ", "ቅርጫት ኳስ", "ቤዝቦል"], answer: "ራግቢ" },
+                        { question: "በቴኒስ ውስጥ 'ኔት' (Net) ምንድን ነው?", options: ["ኳስ", "መረብ", "ራኬት", "የፍርድ ቤት ክፍል"], answer: "መረብ" },
+                        { question: "የቱ ስፖርት ነው 'ክሪኬት' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ክሪኬት", "ቴኒስ"], answer: "ክሪኬት" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ ዳንስ ተብሎ የሚታወቀው?", options: ["መዋኛ", "እግር ኳስ", "ውሃ ውስጥ ዳንስ", "ቅርጫት ኳስ"], answer: "ውሃ ውስጥ ዳንስ" },
+                        { question: "የቱ ስፖርት ነው 'ታይኮንዶ' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ታይኮንዶ", "መዋኛ", "እግር ኳስ"], answer: "ታይኮንዶ" }
+                    ]
+                },
+                {
+                    name: "የ 2ኛ ክፍል ስፖርት",
+                    id: "2nd_grade_sport",
+                    questions: [
+                        { question: "የኦሎምፒክ ጨዋታዎች በስንት አመት አንዴ ነው የሚካሄዱት?", options: ["2", "3", "4", "5"], answer: "4" },
+                        { question: "የእግር ኳስ ዓለም ዋንጫ (World Cup) የትኛው ሀገር ነው ብዙ ጊዜ ያሸነፈው?", options: ["ጀርመን", "ጣሊያን", "ብራዚል", "አርጀንቲና"], answer: "ብራዚል" },
+                        { question: "በቅርጫት ኳስ ውስጥ 'ፋውል' ምንድን ነው?", options: ["ኳስ መጣል", "ህግ መጣስ", "ግብ ማስቆጠር", "መሮጥ"], answer: "ህግ መጣስ" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ ራግቢ ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ውሃ ውስጥ ራግቢ", "ቅርጫት ኳስ", "ቴኒስ"], answer: "ውሃ ውስጥ ራግቢ" },
+                        { question: "በቴኒስ ውስጥ 'ሎቭ' (Love) ማለት ስንት ነጥብ ነው?", options: ["15", "30", "40", "0"], answer: "0" },
+                        // Placeholder for the remaining 45 questions for 2nd Grade Sport
+                        // Please add 45 more questions here for 'የ 2ኛ ክፍል ስፖርት' to reach 50 questions.
+                        { question: "በቮሊቦል ውስጥ 'ሮቴሽን' ምንድን ነው?", options: ["ኳስ መጣል", "የተጫዋቾች ቦታ መለወጥ", "ግብ ማስቆጠር", "ኳስ ማጣት"], answer: "የተጫዋቾች ቦታ መለወጥ" },
+                        { question: "የቱ ስፖርት ነው 'ባድሚንተን' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ጠረጴዛ ቴኒስ", "ባድሚንተን", "ቮሊቦል"], answer: "ባድሚንተን" },
+                        { question: "የቱ ስፖርት ነው 'ክብደት ማንሳት' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ቅርጫት ኳስ", "ክብደት ማንሳት", "እግር ኳስ"], answer: "ክብደት ማንሳት" },
+                        { question: "በበረዶ ሆኪ ውስጥ 'ኦፍሳይድ' ህግ ምንድን ነው?", options: ["ኳስ ከሜዳ ውጪ መሄድ", "አጥቂ ተጫዋች ከፓክ በፊት ወደ ተጋጣሚ ዞን መግባት", "ግብ ማስቆጠር", "ኳስ ማጣት"], answer: "አጥቂ ተጫዋች ከፓክ በፊት ወደ ተጋጣሚ ዞን መግባት" },
+                        { question: "የቱ ስፖርት ነው የቡድን ትብብር እና ስትራቴጂ የሚያስፈልገው?", options: ["ቴኒስ", "ቼዝ", "እግር ኳስ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "በአጥር ግጥሚያ ውስጥ 'ሳብረ' (Sabre) ምንድን ነው?", options: ["የሰይፍ አይነት", "የመከላከያ ልብስ", "የጥቃት አይነት", "የዳኛ ምልክት"], answer: "የሰይፍ አይነት" },
+                        { question: "የቱ ስፖርት ነው 'ማሪቶን' ተብሎ የሚታወቀው?", options: ["አጭር ሩጫ", "ረጅም ሩጫ", "መዋኛ", "ብስክሌት"], answer: "ረጅም ሩጫ" },
+                        { question: "የቱ ስፖርት ነው 'ካያኪንግ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ካያኪንግ", "ብስክሌት"], answer: "ካያኪንግ" },
+                        { question: "በጁዶ ውስጥ 'ኢፖን' ምንድን ነው?", options: ["አንድ ነጥብ", "ግማሽ ነጥብ", "ሙሉ ድል", "ቅጣት"], answer: "ሙሉ ድል" },
+                        { question: "የቱ ስፖርት ነው የፈረስ ግልቢያ እና ኳስን በእጅ መወርወር የሚያካትት?", options: ["እግር ኳስ", "ፖሎ", "እጅ ፖሎ", "ቴኒስ"], answer: "ፖሎ" },
+                        { question: "በቀስት ውርወራ ውስጥ 'ጎልደን' ምንድን ነው?", options: ["የዒላማው ውጪ", "የዒላማው መሃል", "የተሳሳተ ምት", "የጠፋ ቀስት"], answer: "የዒላማው መሃል" },
+                        { question: "የቱ ስፖርት ነው በአትሌቲክስ ውስጥ የሚደረግ እና መወርወርን የሚያካትት?", options: ["ሩጫ", "ረጅም ዝላይ", "ዲስከስ ትሮው", "መዋኛ"], answer: "ዲስከስ ትሮው" },
+                        { question: "የቱ ስፖርት ነው 'ቤዝቦል' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ቤዝቦል", "ቮሊቦል"], answer: "ቤዝቦል" },
+                        { question: "የቱ ስፖርት ነው 'ፓወርሊፍቲንግ' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ቅርጫት ኳስ", "ፓወርሊፍቲንግ", "እግር ኳስ"], answer: "ፓወርሊፍቲንግ" },
+                        { question: "የቱ ስፖርት ነው 'ጠረጴዛ ቴኒስ' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ጠረጴዛ ቴኒስ", "ባድሚንተን", "ቮሊቦል"], answer: "ጠረጴዛ ቴኒስ" },
+                        { question: "በጂምናስቲክስ ውስጥ 'ፍሎር ኤክሰርሳይዝ' ምንድን ነው?", options: ["በመሬት ላይ የሚደረጉ እንቅስቃሴዎች", "በመሳሪያ ላይ የሚደረጉ እንቅስቃሴዎች", "የሚዘለሉ እንቅስቃሴዎች", "የመሮጥ እንቅስቃሴዎች"], answer: "በመሬት ላይ የሚደረጉ እንቅስቃሴዎች" },
+                        { question: "የቱ ስፖርት ነው የቡድን መንፈስ እና የፍትሃዊነት ህጎች የሚያስፈልገው?", options: ["ቴኒስ", "ቼዝ", "እግር ኳስ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "የቱ ስፖርት ነው 'ስኩባ ዳይቪንግ' ተብሎ የሚታወቀው?", options: ["መዋኛ", "ስኖርከል", "ስኩባ ዳይቪንግ", "ዳይቪንግ"], answer: "ስኩባ ዳይቪንግ" },
+                        { question: "በበረዶ ስኬቲንግ ውስጥ 'ስፒን' ምንድን ነው?", options: ["ቀጥታ መንሸራተት", "አንድ አይነት ዝላይ", "በቦታው መሽከርከር", "መውደቅ"], answer: "በቦታው መሽከርከር" },
+                        { question: "የቱ ስፖርት ነው 'ራግቢ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ራግቢ", "ቅርጫት ኳስ", "ቤዝቦል"], answer: "ራግቢ" },
+                        { question: "በቦክስ ውስጥ 'ክሊንች' ምንድን ነው?", options: ["ምት መስጠት", "ተቃዋሚን መያዝ", "መሮጥ", "መውደቅ"], answer: "ተቃዋሚን መያዝ" },
+                        { question: "የቱ ስፖርት ነው 'ስኬትቦርዲንግ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ስኬትቦርዲንግ", "ብስክሌት"], answer: "ስኬትቦርዲንግ" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ ሆኪ ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "የውሃ ውስጥ ሆኪ", "ቅርጫት ኳስ", "ቴኒስ"], answer: "የውሃ ውስጥ ሆኪ" },
+                        { question: "የቱ ስፖርት ነው 'ትራክ ኤንድ ፊልድ' የሚባለው?", options: ["መዋኛ", "ሩጫ እና መወርወር", "ብስክሌት", "ቴኒስ"], answer: "ሩጫ እና መወርወር" },
+                        { question: "በበረዶ መንሸራተት ውስጥ 'ኖርድክ' ምንድን ነው?", options: ["የጠፍጣፋ መሬት ስኪንግ", "የተራራ ቁልቁል ስኪንግ", "የቡድን ስኪንግ", "የሩጫ ስኪንግ"], answer: "የጠፍጣፋ መሬት ስኪንግ" },
+                        { question: "የቱ ስፖርት ነው 'ካኖይንግ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ካኖይንግ", "ብስክሌት"], answer: "ካኖይንግ" },
+                        { question: "የቱ ስፖርት ነው በጎልፍ ውስጥ 'አልባትሮስ' (Albatross) የሚባለው?", options: ["ከፓር በላይ 3 ነጥብ", "ከፓር በታች 3 ነጥብ", "ከፓር ጋር እኩል", "ከፓር በላይ 2 ነጥብ"], answer: "ከፓር በታች 3 ነጥብ" },
+                        { question: "የቱ ስፖርት ነው 'ፓራሹቲንግ' ተብሎ የሚታወቀው?", options: ["መዋኛ", "እግር ኳስ", "ፓራሹቲንግ", "ቅርጫት ኳስ"], answer: "ፓራሹቲንግ" },
+                        { question: "የቱ ስፖርት ነው 'እጅ ኳስ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "እጅ ኳስ", "ቅርጫት ኳስ", "ቴኒስ"], answer: "እጅ ኳስ" },
+                        { question: "በአጥር ግጥሚያ ውስጥ 'ፎይል' (Foil) ምንድን ነው?", options: ["የሰይፍ አይነት", "የመከላከያ ልብስ", "የጥቃት አይነት", "የዳኛ ምልክት"], answer: "የሰይፍ አይነት" },
+                        { question: "የቱ ስፖርት ነው 'የበረዶ ሆኪ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "የበረዶ ሆኪ", "መዋኛ"], answer: "የበረዶ ሆኪ" },
+                        { question: "የቱ ስፖርት ነው 'ትራምፖሊን ጂምናስቲክስ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ትራምፖሊን ጂምናስቲክስ", "ብስክሌት"], answer: "ትራምፖሊን ጂምናስቲክስ" },
+                        { question: "የቱ ስፖርት ነው 'ሆኪ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ሆኪ", "ቴኒስ"], answer: "ሆኪ" },
+                        { question: "በፈረስ ግልቢያ ውስጥ 'ድሬሳጅ' (Dressage) ምንድን ነው?", options: ["የፈረስ ውድድር", "የፈረስ ስልጠና", "የፈረስ ምግብ", "የፈረስ ጤና"], answer: "የፈረስ ስልጠና" },
+                        { question: "የቱ ስፖርት ነው 'ቢአትሎን' ተብሎ የሚታወቀው?", options: ["ሩጫ ብቻ", "ስኪንግ እና መተኮስ", "ብስክሌት ብቻ", "መዋኛ ብቻ"], answer: "ስኪንግ እና መተኮስ" },
+                        { question: "የቱ ስፖርት ነው 'ሲንክሮናይዝድ ስዊሚንግ' ተብሎ የሚታወቀው?", options: ["መዋኛ", "ሲንክሮናይዝድ ስዊሚንግ", "ስኩባ ዳይቪንግ", "ዳይቪንግ"], answer: "ሲንክሮናይዝድ ስዊሚንግ" },
+                        { question: "የቱ ስፖርት ነው የቡድን ትብብር እና ኳስ የሚጠቀመው?", options: ["ቴኒስ", "እግር ኳስ", "ቼዝ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "የቱ ስፖርት ነው 'ክሮስፊት' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ቅርጫት ኳስ", "ክሮስፊት", "እግር ኳስ"], answer: "ክሮስፊት" },
+                        { question: "በቅርጫት ኳስ ውስጥ '3 ነጥብ ሹት' ከየት ነው የሚተኮሰው?", options: ["ከቅርጫቱ ስር", "ከቅጣት መስመር", "ከ3 ነጥብ መስመር ውጪ", "ከሜዳው መሃል"], answer: "ከ3 ነጥብ መስመር ውጪ" },
+                        { question: "የቱ ስፖርት ነው 'አርቲስቲክ ጂምናስቲክስ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "አርቲስቲክ ጂምናስቲክስ", "ብስክሌት"], answer: "አርቲስቲክ ጂምናስቲክስ" },
+                        { question: "የቱ ስፖርት ነው 'ራግቢ ሊግ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ራግቢ ሊግ", "ቅርጫት ኳስ", "ቤዝቦል"], answer: "ራግቢ ሊግ" },
+                        { question: "በቴኒስ ውስጥ 'ቤክሃንድ' ምት ምንድን ነው?", options: ["የፊት ምት", "የኋላ ምት", "አገልግሎት", "ከፍተኛ ምት"], answer: "የኋላ ምት" },
+                        { question: "የቱ ስፖርት ነው 'ባድሚንተን' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ባድሚንተን", "ቴኒስ"], answer: "ባድሚንተን" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ መዋኘት እና መዝለል የሚያካትት?", options: ["መዋኛ", "ዳይቪንግ", "ስኖርከል", "ውሃ ፖሎ"], answer: "ዳይቪንግ" },
+                        { question: "የቱ ስፖርት ነው 'ክብደት ማንሳት' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ክብደት ማንሳት", "መዋኛ", "እግር ኳስ"], answer: "ክብደት ማንሳት" }
+                    ]
+                },
+                {
+                    name: "የ 3ኛ ክፍል ስፖርት",
+                    id: "3rd_grade_sport",
+                    questions: [
+                        { question: "የኦሎምፒክ ችቦ እሳት ምንን ያመለክታል?", options: ["ፍጥነት", "ብርታት", "ቀጣይነት እና ንጽህና", "ድል"], answer: "ቀጣይነት እና ንጽህና" },
+                        { question: "በእግር ኳስ ውስጥ 'ሃት-ትሪክ' ምንድን ነው?", options: ["አንድ ግብ", "ሁለት ግቦች", "ሶስት ግቦች በአንድ ጨዋታ", "አራት ግቦች"], answer: "ሶስት ግቦች በአንድ ጨዋታ" },
+                        { question: "የቅርጫት ኳስ 'ኤንቢኤ' (NBA) ማለት ምን ማለት ነው?", options: ["ብሔራዊ የቅርጫት ኳስ ማህበር", "አዲስ የቅርጫት ኳስ ሊግ", "የሰሜን ባስኬትቦል ህብረት", "ምርጥ የቅርጫት ኳስ አትሌቶች"], answer: "ብሔራዊ የቅርጫት ኳስ ማህበር" },
+                        { question: "የቱ ስፖርት ነው 'ዋተር ፖሎ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ዋተር ፖሎ", "ቴኒስ"], answer: "ዋተር ፖሎ" },
+                        { question: "በቴኒስ ውስጥ 'ዲውስ' (Deuce) ምንድን ነው?", options: ["ውጤት 40-40", "የመጀመሪያ ነጥብ", "የመጨረሻ ነጥብ", "የተሳሳተ ምት"], answer: "ውጤት 40-40" },
+                        // Placeholder for the remaining 45 questions for 3rd Grade Sport
+                        // Please add 45 more questions here for 'የ 3ኛ ክፍል ስፖርት' to reach 50 questions.
+                        { question: "በቮሊቦል ውስጥ 'ሊቤሮ' (Libero) ሚና ምንድን ነው?", options: ["አጥቂ", "ተከላካይ", "ሴተር", "ብሎከር"], answer: "ተከላካይ" },
+                        { question: "የቱ ስፖርት ነው 'ክብደት ማንሳት' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ቅርጫት ኳስ", "ክብደት ማንሳት", "እግር ኳስ"], answer: "ክብደት ማንሳት" },
+                        { question: "በበረዶ ሆኪ ውስጥ 'ፓወር ፕሌይ' ምንድን ነው?", options: ["የቡድን ጨዋታ", "አንድ ቡድን በተጫዋች ብልጫ ሲጫወት", "መከላከያ ጨዋታ", "የግብ ጠባቂ ጨዋታ"], answer: "አንድ ቡድን በተጫዋች ብልጫ ሲጫወት" },
+                        { question: "የቱ ስፖርት ነው የቡድን ትብብር እና ተለዋዋጭነት የሚያስፈልገው?", options: ["ቴኒስ", "ቼዝ", "እግር ኳስ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "በአጥር ግጥሚያ ውስጥ 'ኢፔ' (Epée) ምንድን ነው?", options: ["የሰይፍ አይነት", "የመከላከያ ልብስ", "የጥቃት አይነት", "የዳኛ ምልክት"], answer: "የሰይፍ አይነት" },
+                        { question: "የቱ ስፖርት ነው 'አልትራ ማሪቶን' ተብሎ የሚታወቀው?", options: ["ከማሪቶን አጭር ሩጫ", "ከማሪቶን ረዘም ያለ ሩጫ", "በውሃ ውስጥ የሚደረግ ሩጫ", "በተራራ ላይ የሚደረግ ሩጫ"], answer: "ከማሪቶን ረዘም ያለ ሩጫ" },
+                        { question: "የቱ ስፖርት ነው 'ቀዘፋ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ቀዘፋ", "ብስክሌት"], answer: "ቀዘፋ" },
+                        { question: "በጁዶ ውስጥ 'ዋዛ-አሪ' ምንድን ነው?", options: ["ሙሉ ድል", "ግማሽ ነጥብ", "ቅጣት", "የጥቃት አይነት"], answer: "ግማሽ ነጥብ" },
+                        { question: "የቱ ስፖርት ነው የፈረስ ግልቢያ እና መዝለል የሚያካትት?", options: ["እግር ኳስ", "ፖሎ", "ሾው ጁምፒንግ", "ቴኒስ"], answer: "ሾው ጁምፒንግ" },
+                        { question: "በቀስት ውርወራ ውስጥ 'ዳርትቦርድ' ምንድን ነው?", options: ["ቀስት", "ዒላማ", "ቀስት መወርወሪያ", "ቀስቶችን የሚይዝ ቦርሳ"], answer: "ዒላማ" },
+                        { question: "የቱ ስፖርት ነው በአትሌቲክስ ውስጥ 'ትራይፕል ዝላይ' የሚባለው?", options: ["ሩጫ", "ርዝመት መዝለል", "ባለሶስት ዝላይ", "ቁመት መዝለል"], answer: "ባለሶስት ዝላይ" },
+                        { question: "የቱ ስፖርት ነው 'ሶፍትቦል' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ሶፍትቦል", "ቮሊቦል"], answer: "ሶፍትቦል" },
+                        { question: "የቱ ስፖርት ነው 'ኦሎምፒክ ክብደት ማንሳት' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ቅርጫት ኳስ", "ኦሎምፒክ ክብደት ማንሳት", "እግር ኳስ"], answer: "ኦሎምፒክ ክብደት ማንሳት" },
+                        { question: "የቱ ስፖርት ነው 'ፒንግ-ፖንግ' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ጠረጴዛ ቴኒስ", "ባድሚንተን", "ቮሊቦል"], answer: "ጠረጴዛ ቴኒስ" },
+                        { question: "በጂምናስቲክስ ውስጥ 'አሲሜትሪክ ባርስ' ምንድን ነው?", options: ["የመሮጫ መንገድ", "የሚዘለል መሳሪያ", "የተለያዩ ከፍታ ያላቸው ምሰሶዎች", "የሚወዛወዝ ገመድ"], answer: "የተለያዩ ከፍታ ያላቸው ምሰሶዎች" },
+                        { question: "የቱ ስፖርት ነው የቡድን መንፈስ እና የቴክኒክ ክህሎት የሚያስፈልገው?", options: ["ቴኒስ", "ቼዝ", "እግር ኳስ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "የቱ ስፖርት ነው 'አርቲስቲክ ስዊሚንግ' ተብሎ የሚታወቀው?", options: ["መዋኛ", "ሲንክሮናይዝድ ስዊሚንግ", "ስኩባ ዳይቪንግ", "ዳይቪንግ"], answer: "ሲንክሮናይዝድ ስዊሚንግ" },
+                        { question: "በበረዶ ስኬቲንግ ውስጥ 'ሉፕ' (Loop) ምንድን ነው?", options: ["ቀጥታ መንሸራተት", "አንድ አይነት ዝላይ", "በቦታው መሽከርከር", "መውደቅ"], answer: "አንድ አይነት ዝላይ" },
+                        { question: "የቱ ስፖርት ነው 'ራግቢ ዩኒየን' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ራግቢ ዩኒየን", "ቅርጫት ኳስ", "ቤዝቦል"], answer: "ራግቢ ዩኒየን" },
+                        { question: "በቦክስ ውስጥ 'ክሮስ' ምት ምንድን ነው?", options: ["ቀጥተኛ ምት", "ጎን ለጎን ምት", "ወደ ላይ ምት", "ወደ ታች ምት"], answer: "ጎን ለጎን ምት" },
+                        { question: "የቱ ስፖርት ነው 'ፓርኩር' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ፓርኩር", "ብስክሌት"], answer: "ፓርኩር" },
+                        { question: "የቱ ስፖርት ነው 'ውሃ ውስጥ ሆኪ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ውሃ ውስጥ ሆኪ", "ቅርጫት ኳስ", "ቴኒስ"], answer: "ውሃ ውስጥ ሆኪ" },
+                        { question: "የቱ ስፖርት ነው 'ዴካትሎን' (Decathlon) የሚባለው?", options: ["አምስት ስፖርቶች", "ስምንት ስፖርቶች", "አስር ስፖርቶች", "አስራ ሁለት ስፖርቶች"], answer: "አስር ስፖርቶች" },
+                        { question: "በበረዶ መንሸራተት ውስጥ 'ጃምፕ' ምንድን ነው?", options: ["መሮጥ", "መዝለል", "መውደቅ", "መንሸራተት"], answer: "መዝለል" },
+                        { question: "የቱ ስፖርት ነው 'ሮዊንግ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ሮዊንግ", "ብስክሌት"], answer: "ሮዊንግ" },
+                        { question: "የቱ ስፖርት ነው በጎልፍ ውስጥ 'ሆል-ኢን-ዋን' (Hole-in-one) የሚባለው?", options: ["በአንድ ምት ኳስን ወደ ጉድጓድ ማስገባት", "ሁለት ምቶች", "ሶስት ምቶች", "ኳስ ማጣት"], answer: "በአንድ ምት ኳስን ወደ ጉድጓድ ማስገባት" },
+                        { question: "የቱ ስፖርት ነው 'ፓራሹቲንግ' ተብሎ የሚታወቀው?", options: ["መዋኛ", "እግር ኳስ", "ፓራሹቲንግ", "ቅርጫት ኳስ"], answer: "ፓራሹቲንግ" },
+                        { question: "የቱ ስፖርት ነው 'እጅ ኳስ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "እጅ ኳስ", "ቅርጫት ኳስ", "ቴኒስ"], answer: "እጅ ኳስ" },
+                        { question: "በአጥር ግጥሚያ ውስጥ 'ለሜ' (Lame) ምንድን ነው?", options: ["የሰይፍ አይነት", "የመከላከያ ልብስ", "የጥቃት አይነት", "የኤሌክትሪክ ምልክት"], answer: "የኤሌክትሪክ ምልክት" },
+                        { question: "የቱ ስፖርት ነው 'ከርሊንግ' (Curling) ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ከርሊንግ", "መዋኛ"], answer: "ከርሊንግ" },
+                        { question: "የቱ ስፖርት ነው 'አርቲስቲክ ጂምናስቲክስ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "አርቲስቲክ ጂምናስቲክስ", "ብስክሌት"], answer: "አርቲስቲክ ጂምናስቲክስ" },
+                        { question: "የቱ ስፖርት ነው 'ሆኪ' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ሆኪ", "ቴኒስ"], answer: "ሆኪ" },
+                        { question: "በፈረስ ግልቢያ ውስጥ 'ካንተር' (Canter) ምንድን ነው?", options: ["ቀርፋፋ ፍጥነት", "መካከለኛ ፍጥነት", "ፈጣን ፍጥነት", "መቆም"], answer: "መካከለኛ ፍጥነት" },
+                        { question: "የቱ ስፖርት ነው 'ትሪአትሎን' ተብሎ የሚታወቀው?", options: ["ሩጫ ብቻ", "መዋኛ ብቻ", "ሩጫ፣ ብስክሌት፣ መዋኛ", "ብስክሌት ብቻ"], answer: "ሩጫ፣ ብስክሌት፣ መዋኛ" },
+                        { question: "የቱ ስፖርት ነው 'ስኖርከል' (Snorkel) ተብሎ የሚታወቀው?", options: ["መዋኛ", "ስኖርከል", "ስኩባ ዳይቪንግ", "ዳይቪንግ"], answer: "ስኖርከል" },
+                        { question: "የቱ ስፖርት ነው የቡድን ትብብር እና ኳስ የሚጠቀመው?", options: ["ቴኒስ", "እግር ኳስ", "ቼዝ", "ጎልፍ"], answer: "እግር ኳስ" },
+                        { question: "የቱ ስፖርት ነው 'ክሮስፊት' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ቅርጫት ኳስ", "ክሮስፊት", "እግር ኳስ"], answer: "ክሮስፊት" },
+                        { question: "በቅርጫት ኳስ ውስጥ 'ሪባውንድ' (Rebound) ምንድን ነው?", options: ["ኳስ መጣል", "ከተተኮሰ በኋላ ኳስ መያዝ", "ግብ ማስቆጠር", "መሮጥ"], answer: "ከተተኮሰ በኋላ ኳስ መያዝ" },
+                        { question: "የቱ ስፖርት ነው 'ጂምናስቲክስ' ተብሎ የሚታወቀው?", options: ["ሩጫ", "መዋኛ", "ጂምናስቲክስ", "ብስክሌት"], answer: "ጂምናስቲክስ" },
+                        { question: "የቱ ስፖርት ነው 'አሜሪካን ፉትቦል' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "አሜሪካን ፉትቦል", "ቅርጫት ኳስ", "ቤዝቦል"], answer: "አሜሪካን ፉትቦል" },
+                        { question: "በቴኒስ ውስጥ 'ግሪፕ' (Grip) ምንድን ነው?", options: ["ራኬት", "ኳስ", "ራኬትን የምንይዝበት መንገድ", "የፍርድ ቤት ክፍል"], answer: "ራኬትን የምንይዝበት መንገድ" },
+                        { question: "የቱ ስፖርት ነው 'ባድሚንተን' ተብሎ የሚታወቀው?", options: ["እግር ኳስ", "ቅርጫት ኳስ", "ባድሚንተን", "ቴኒስ"], answer: "ባድሚንተን" },
+                        { question: "የቱ ስፖርት ነው የውሃ ውስጥ መዝለል የሚያካትት?", options: ["መዋኛ", "ዳይቪንግ", "ስኖርከል", "ውሃ ፖሎ"], answer: "ዳይቪንግ" },
+                        { question: "የቱ ስፖርት ነው 'ክብደት ማንሳት' ተብሎ የሚታወቀው?", options: ["ቴኒስ", "ክብደት ማንሳት", "መዋኛ", "እግር ኳስ"], answer: "ክብደት ማንሳት" }
+                    ]
+                }
+            ];
+
+            // Other quiz variables and elements remain the same
+            const levelListDiv = document.getElementById('level-list');
+            const quizSectionDiv = document.getElementById('quiz-section');
+            const levelTitleDisplay = document.getElementById('level-title');
+            const questionNumberDisplay = document.getElementById('question-number');
+            const questionDisplay = document.getElementById('question-display');
+            const optionsContainer = document.getElementById('options-container');
+            const submitButton = document.getElementById('submit-answer');
+            const nextQuestionButton = document.getElementById('next-question');
+            const backButton = document.getElementById('back-button');
+            const feedbackDisplay = document.getElementById('feedback-display');
+            const quizCompleteMessage = document.getElementById('quiz-complete-message');
+
+            let currentLevel = null;
+            let currentQuestionIndex = 0;
+            let selectedOption = null;
+
+            // Function to render levels
+            function renderLevels() {
+                levelListDiv.innerHTML = ''; // Clear previous levels
+                levels.forEach(level => {
+                    const levelItem = document.createElement('div');
+                    levelItem.className = 'list-item p-4 bg-blue-100 rounded-lg shadow-md cursor-pointer text-blue-800 font-semibold hover:bg-blue-200 text-xl';
+                    levelItem.textContent = level.name;
+                    levelItem.addEventListener('click', () => {
+                        showQuiz(level, 0); // Start from the first question
+                        // Save initial progress when a new quiz is started (only if Firebase is initialized)
+                        if (firebaseInitialized && userId) {
+                            saveUserProgress(userId, level.id, 0);
+                        }
+                    });
+                    levelListDiv.appendChild(levelItem);
+                });
+            }
+
+            // Function to show quiz questions
+            function showQuiz(level, startIndex = 0) {
+                currentLevel = level;
+                currentQuestionIndex = startIndex;
+                levelListDiv.classList.add('hidden'); // Hide level list
+                quizSectionDiv.classList.remove('hidden'); // Show quiz section
+                displayQuestion();
+            }
+
+            // Function to display the current question
+            function displayQuestion() {
+                if (currentQuestionIndex < currentLevel.questions.length) {
+                    const questionData = currentLevel.questions[currentQuestionIndex];
+                    levelTitleDisplay.textContent = currentLevel.name;
+                    questionNumberDisplay.textContent = `ጥያቄ ${currentQuestionIndex + 1} ከ ${currentLevel.questions.length}`;
+                    questionDisplay.textContent = questionData.question;
+                    optionsContainer.innerHTML = '';
+                    feedbackDisplay.textContent = ''; // Clear previous feedback
+                    submitButton.classList.remove('hidden');
+                    nextQuestionButton.classList.add('hidden');
+                    optionsContainer.classList.remove('pointer-events-none', 'opacity-50'); // Re-enable options
+
+                    shuffleArray(questionData.options).forEach(option => {
+                        const optionItem = document.createElement('label');
+                        optionItem.className = 'option-item';
+                        optionItem.innerHTML = `
+                            <input type="radio" name="answer" value="${option}" class="form-radio">
+                            <span>${option}</span>
+                        `;
+                        optionItem.addEventListener('click', () => {
+                            selectedOption = option;
+                        });
+                        optionsContainer.appendChild(optionItem);
+                    });
+                    selectedOption = null; // Reset selected option
+                } else {
+                    // Quiz is complete
+                    quizCompleteMessage.classList.remove('hidden');
+                    submitButton.classList.add('hidden');
+                    nextQuestionButton.classList.add('hidden');
+                    questionNumberDisplay.textContent = '';
+                    questionDisplay.textContent = '';
+                    optionsContainer.innerHTML = '';
+                    feedbackDisplay.textContent = '';
+                    // Clear progress for this level after completion
+                    if (firebaseInitialized && userId && currentLevel) {
+                        saveUserProgress(userId, currentLevel.id, currentLevel.questions.length); // Mark as complete
+                    }
+                }
+            }
+
+            // Event listener for submit button
+            submitButton.addEventListener('click', () => {
+                if (selectedOption) {
+                    if (selectedOption === currentLevel.questions[currentQuestionIndex].answer) {
+                        feedbackDisplay.textContent = 'ትክክል ነዎት!';
+                        feedbackDisplay.className = 'text-lg mt-4 font-medium text-green-600';
+                    } else {
+                        feedbackDisplay.textContent = `ትክክለኛው መልስ: ${currentLevel.questions[currentQuestionIndex].answer}`;
+                        feedbackDisplay.className = 'text-lg mt-4 font-medium text-red-600';
+                    }
+                    submitButton.classList.add('hidden');
+                    nextQuestionButton.classList.remove('hidden'); // Show next
+                    optionsContainer.classList.add('pointer-events-none', 'opacity-50'); // Disable options after submission
+                } else {
+                    showModal('እባክዎ መልስ ይምረጡ።');
+                }
+            });
+
+            // Function to move to the next question
+            nextQuestionButton.addEventListener('click', () => {
+                currentQuestionIndex++;
+                displayQuestion(); // Display the next question or quiz complete message
+
+                // Save progress after moving to next question ONLY if Firebase is initialized
+                if (firebaseInitialized && currentLevel) { // Check currentLevel to avoid saving if quiz is complete
+                    saveUserProgress(userId, currentLevel.id, currentQuestionIndex);
+                }
+            });
+
+            // Function to go back to the level list
+            backButton.addEventListener('click', () => {
+                quizSectionDiv.classList.add('hidden'); // Hide quiz section
+                levelListDiv.classList.remove('hidden'); // Show level list
+                quizCompleteMessage.classList.add('hidden'); // Hide quiz complete message
+                optionsContainer.classList.remove('pointer-events-none', 'opacity-50'); // Ensure options are re-enabled
+                currentLevel = null;
+                currentQuestionIndex = 0; // Reset index for next quiz
+            });
+
+            // Initial render of levels
+            renderLevels();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>የአማርኛ ትምህርት ደረጃዎች ጥያቄና መልስ</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a better look and feel */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Ensure it takes full viewport height */
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        .list-item, .button {
+            transition: all 0.2s ease-in-out; /* Smooth transitions for hover effects */
+        }
+        .list-item:hover {
+            transform: translateY(-3px); /* Slight lift on hover */
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+        /* Custom modal for alerts */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e0; /* Light gray border */
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            background-color: #f8fafc; /* Very light blue-gray */
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+            text-align: left;
+        }
+        .option-item:hover {
+            background-color: #e2e8f0; /* Slightly darker on hover */
+            border-color: #93c5fd; /* Blue border on hover */
+        }
+        .option-item input[type="radio"] {
+            margin-right: 1rem;
+            cursor: pointer;
+            accent-color: #3b82f6; /* Blue accent for radio button */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">የአማርኛ ትምህርት ደረጃዎች</h1>
+
+        <!-- Level List Section -->
+        <div id="level-list" class="space-y-4">
+            <!-- List items will be dynamically inserted here by JavaScript -->
+        </div>
+
+        <!-- Quiz Section (initially hidden) -->
+        <div id="quiz-section" class="hidden text-left">
+            <button id="back-button" class="button bg-gray-200 text-gray-700 px-4 py-2 rounded-lg mb-6 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+                ← ወደ ደረጃዎች ተመለስ
+            </button>
+            <p id="level-title" class="text-2xl font-semibold text-blue-700 mb-6"></p>
+            <p id="question-number" class="text-lg text-gray-600 mb-2"></p>
+            <p id="question-display" class="text-xl text-gray-800 mb-6"></p>
+
+            <!-- Options container for multiple choice -->
+            <div id="options-container" class="space-y-3 mb-4">
+                <!-- Multiple choice options will be inserted here by JavaScript -->
+            </div>
+
+            <button id="submit-answer" class="button bg-blue-600 text-white px-6 py-3 rounded-lg w-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                መልስ አስገባ
+            </button>
+            <button id="next-question" class="button bg-green-500 text-white px-6 py-3 rounded-lg w-full mt-4 hidden hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">
+                ቀጣይ ጥያቄ
+            </button>
+            <p id="feedback-display" class="text-lg mt-4 font-medium"></p>
+            <p id="quiz-complete-message" class="text-2xl text-green-700 font-bold mt-8 hidden">
+                ጥያቄዎቹ ተጠናቀዋል! በጣም ጥሩ!
+            </p>
+        </div>
+    </div>
+
+    <!-- Custom Modal for Messages -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="modal-message" class="text-lg text-gray-800"></p>
+            <button id="modal-ok-button" class="button bg-blue-600 text-white px-4 py-2 rounded-lg mt-4 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">እሺ</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration and initialization (MANDATORY in Canvas, optional for local run without persistence)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use a dummy for local execution
+        const firebaseConfigRaw = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        let firebaseConfig = {};
+        let firebaseEnabled = false;
+
+        // Attempt to parse firebaseConfig. If it's an empty object, Firebase will not be initialized.
+        try {
+            firebaseConfig = JSON.parse(firebaseConfigRaw);
+            // Check if the parsed config actually has keys (meaning it's not just an empty object from Canvas default)
+            if (Object.keys(firebaseConfig).length > 0) {
+                firebaseEnabled = true;
+            } else {
+                console.warn("No Firebase configuration provided or config is empty. Persistence will be disabled.");
+            }
+        } catch (e) {
+            console.error("Error parsing Firebase config:", e);
+            console.warn("Firebase will be disabled due to config error. Persistence will not work.");
+        }
+
+        let app, db, auth, userId;
+        let firebaseInitialized = false; // Flag to track successful Firebase initialization
+
+        // Function to show custom modal
+        function showModal(message) {
+            const modal = document.getElementById('myModal');
+            const modalMessage = document.getElementById('modal-message');
+            modalMessage.textContent = message;
+            modal.style.display = 'flex'; // Use flex to center
+        }
+
+        // Helper function to shuffle an array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Firestore: Save user's last selected level and question index
+        async function saveUserProgress(uid, levelId, questionIndex) {
+            if (!firebaseInitialized || !db) { // Check firebaseInitialized
+                console.warn("Firebase is not initialized. Progress will not be saved.");
+                return;
+            }
+            const userDocRef = doc(db, `artifacts/${appId}/users/${uid}/progress`, 'lastQuizState');
+            try {
+                await setDoc(userDocRef, {
+                    lastLevelId: levelId,
+                    lastQuestionIndex: questionIndex
+                }, { merge: true });
+                console.log(`User ${uid} progress saved: Level ${levelId}, Question ${questionIndex}`);
+            } catch (e) {
+                console.error("Error saving document: ", e);
+                showModal("ሂደትን ማስቀመጥ አልተቻለም፡፡ እባክዎ የበይነመረብ ግንኙነትዎን ያረጋግጡ።");
+            }
+        }
+
+        // Firestore: Load user's last selected level and question index and resume
+        async function loadUserProgress(uid) {
+            if (!firebaseInitialized || !db) { // Check firebaseInitialized
+                console.warn("Firebase is not initialized. Progress will not be loaded.");
+                return;
+            }
+            const userDocRef = doc(db, `artifacts/${appId}/users/${uid}/progress`, 'lastQuizState');
+            try {
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const lastLevelId = data.lastLevelId;
+                    const lastQuestionIndex = data.lastQuestionIndex || 0; // Default to 0 if not set
+
+                    const lastLevel = levels.find(level => level.id === lastLevelId);
+                    if (lastLevel) {
+                        // Check if the saved index is within bounds of the current questions for that level
+                        const effectiveIndex = Math.min(lastQuestionIndex, lastLevel.questions.length);
+                        if (effectiveIndex < lastLevel.questions.length) {
+                            showModal(`እንኳን ደህና መጡ! የ${lastLevel.name} ጥያቄ ${effectiveIndex + 1} ከቀጠሉበት ይቀጥሉ።`);
+                            showQuiz(lastLevel, effectiveIndex);
+                        } else {
+                            // If saved index is past the end, start at beginning of that level
+                            showModal(`እንኳን ደህና መጡ! የ${lastLevel.name} ጥያቄዎችን አጠናቅቀዋል። እንደገና እንጀምር።`);
+                            showQuiz(lastLevel, 0);
+                        }
+                        console.log(`User ${uid} last quiz state loaded: Level ${lastLevelId}, Question ${effectiveIndex}`);
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading document: ", e);
+                showModal("የቀደመውን ሂደት መጫን አልተቻለም።");
+            }
+        }
+
+
+        // Get modal elements
+        const modal = document.getElementById('myModal');
+        const closeButton = document.querySelector('.close-button');
+        const modalOkButton = document.getElementById('modal-ok-button');
+
+        // Close modal when close button is clicked
+        closeButton.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when OK button is clicked
+        modalOkButton.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (firebaseEnabled) {
+                try {
+                    // Initialize Firebase
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    // Sign in anonymously or with custom token (MANDATORY for persistence)
+                    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    // Get the user ID after authentication
+                    userId = auth.currentUser?.uid || crypto.randomUUID();
+                    console.log("Firebase initialized. User ID:", userId);
+                    firebaseInitialized = true; // Set flag to true on success
+
+                } catch (error) {
+                    console.error("Error initializing Firebase services:", error);
+                    showModal("የFirebase አገልግሎቶችን ማስጀመር አልተሳካም። መተግበሪያው ያለ ሂደት ማስቀመጥ ይሰራል። ቋሚነትን ማንቃት ከፈለጉ፣ የFirebase ፕሮጀክትዎ በትክክል መዋቀሩን ያረጋግጡ።");
+                    firebaseInitialized = false; // Ensure flag is false on error
+                }
+            } else {
+                console.log("Firebase is not enabled (no configuration found). The app will run without saving/loading progress.");
+            }
+
+            // Always initialize the app logic, regardless of Firebase status
+            initApp();
+
+            // Load user progress ONLY if Firebase was successfully initialized
+            if (firebaseInitialized) {
+                loadUserProgress(userId);
+            }
+        });
+
+        function initApp() {
+            // Data structure for levels and questions
+            const levels = [
+                {
+                    name: "የመዋዕለ ሕፃናት አማርኛ",
+                    id: "kindergarten_amharic",
+                    questions: [
+                        { question: "የ'ውሻ' ድምፅ ምንድን ነው?", options: ["ሚያው", "ጩኸት", "ሆው-ሆው", "ጪክ-ጪክ"], answer: "ሆው-ሆው" },
+                        { question: "የ'ፀሐይ' ተቃራኒ ምንድን ነው?", options: ["ቀን", "ሌሊት", "ብርሃን", "ጨረቃ"], answer: "ጨረቃ" },
+                        { question: "የቱ ፍሬ ነው ቀይ?", options: ["ሙዝ", "ፖም", "ብርቱካን", "ወይን"], answer: "ፖም" },
+                        { question: "'እናቴ' ብዬ ስጠራ ማን ይመጣል?", options: ["አባቴ", "እህቴ", "እናቴ", "ወንድሜ"], answer: "እናቴ" },
+                        { question: "ሰላም ለማለት ምን ትላለህ?", options: ["ደህና ሁን", "እንኳን ደህና መጣህ", "ሰላም", "አመሰግናለሁ"], answer: "ሰላም" },
+                        { question: "በየትኛው የሰውነት ክፍል ነው የምትበላው?", options: ["እግር", "እጅ", "አፍ", "ዓይን"], answer: "አፍ" },
+                        { question: "'ውሃ' የሚለው ቃል የመጀመሪያ ፊደል ምንድን ነው?", options: ["ወ", "ሀ", "ው", "ያ"], answer: "ወ" },
+                        { question: "የቱ እንስሳ ነው የሚበር?", options: ["ድመት", "ውሻ", "ወፍ", "ዓሳ"], answer: "ወፍ" },
+                        { question: "የ'ትልቅ' ተቃራኒ ምንድን ነው?", options: ["ረዥም", "አጭር", "ትንሽ", "ሰፊ"], answer: "ትንሽ" },
+                        { question: "ሰዎችን ለማመስገን ምን ትላለህ?", options: ["ሰላም", "ደህና ሁን", "ይቅርታ", "አመሰግናለሁ"], answer: "አመሰግናለሁ" },
+                        { question: "የትኛው ቀለም ነው የሣር ቀለም?", options: ["ቀይ", "ሰማያዊ", "አረንጓዴ", "ቢጫ"], answer: "አረንጓዴ" },
+                        { question: "በየትኛው የሰውነት ክፍል ነው የምትሰማው?", options: ["አፍ", "አፍንጫ", "ጆሮ", "ዓይን"], answer: "ጆሮ" },
+                        { question: "'እጅ' የሚለው ቃል የመጨረሻ ፊደል ምንድን ነው?", options: ["እ", "ጅ", "የ", "ዥ"], answer: "ጅ" },
+                        { question: "የቱ መጓጓዣ ነው የሚበሩ?", options: ["መኪና", "ባቡር", "አውሮፕላን", "ብስክሌት"], answer: "አውሮፕላን" },
+                        { question: "የ'ደስተኛ' ተቃራኒ ምንድን ነው?", options: ["የተናደደ", "ሀዘንተኛ", "የተደነቀ", "የተረጋጋ"], answer: "ሀዘንተኛ" },
+                        { question: "ቁርስ የምትበላው መቼ ነው?", options: ["ጠዋት", "ቀትር", "ማታ", "ሌሊት"], answer: "ጠዋት" },
+                        { question: "'ወተት' የሚለው ቃል ስንት ፊደሎች አሉት?", options: ["2", "3", "4", "5"], answer: "3" },
+                        { question: "በየትኛው የአየር ሁኔታ ነው ጃንጥላ የምትጠቀመው?", options: ["ፀሐያማ", "ነፋሻማ", "ዝናባማ", "በረዷማ"], answer: "ዝናባማ" },
+                        { question: "የ'ሞቃት' ተቃራኒ ምንድን ነው?", options: ["ብርድ", "ቀዝቃዛ", "ትኩስ", "ሙቅ"], answer: "ቀዝቃዛ" },
+                        { question: "ቁጥሮችን ለመጻፍ የምትጠቀመው የትኛውን ነው?", options: ["ፊደላት", "ምልክቶች", "ቁጥሮች", "ሥዕሎች"], answer: "ቁጥሮች" },
+                        { question: "የ'ዶሮ' ድምፅ ምንድን ነው?", options: ["ሚያው", "ኩኩሉ", "ሆው-ሆው", "ጪክ-ጪክ"], answer: "ኩኩሉ" },
+                        { question: "የትኛው ፍሬ ነው ቢጫ?", options: ["ፖም", "ሙዝ", "ወይን", "ቼሪ"], answer: "ሙዝ" },
+                        { question: "'ጠዋት' የሚለው ቃል ተቃራኒ ምንድን ነው?", options: ["ቀትር", "ማታ", "ሌሊት", "በኋላ"], answer: "ማታ" },
+                        { question: "ለመተኛት የምትጠቀመው የትኛውን ነው?", options: ["ጠረጴዛ", "ወንበር", "አልጋ", "ቁምሳጥን"], answer: "አልጋ" },
+                        { question: "አምባሻ ከምን ይሰራል?", options: ["ወተት", "እንቁላል", "ዱቄት", "ውሃ"], answer: "ዱቄት" },
+                        { question: "የ'ትንሽ' ተቃራኒ ምንድን ነው?", options: ["መካከለኛ", "ትልቅ", "ረዥም", "ሰፊ"], answer: "ትልቅ" },
+                        { question: "ለመጠጣት የምትጠቀመው የትኛውን ነው?", options: ["ወተት", "ውሃ", "ጁስ", "ሁሉንም"], answer: "ሁሉንም" },
+                        { question: "'እሳት' የሚለው ቃል የመጀመሪያ ፊደል ምንድን ነው?", options: ["እ", "ሳ", "ት", "ፋ"], answer: "እ" },
+                        { question: "የቱ እንስሳ ነው የሚዋኝ?", options: ["ድመት", "ውሻ", "ዓሳ", "ወፍ"], answer: "ዓሳ" },
+                        { question: "ለመጻፍ የምትጠቀመው የትኛውን ነው?", options: ["እርሳስ", "ብዕር", "ማጥፊያ", "ሁሉንም"], answer: "ሁሉንም" },
+                        { question: "የ'ብርሃን' ተቃራኒ ምንድን ነው?", options: ["ጨለማ", "ቀን", "ፀሐይ", "ውሃ"], answer: "ጨለማ" },
+                        { question: "የትኛው ቀለም ነው የሰማይ ቀለም?", options: ["ቀይ", "ሰማያዊ", "አረንጓዴ", "ቢጫ"], answer: "ሰማያዊ" },
+                        { question: "በየትኛው የሰውነት ክፍል ነው የምታየው?", options: ["ጆሮ", "አፍ", "ዓይን", "አፍንጫ"], answer: "ዓይን" },
+                        { question: "'ቤት' የሚለው ቃል የመጨረሻ ፊደል ምንድን ነው?", options: ["በ", "ተ", "ት", "ሄ"], answer: "ት" },
+                        { question: "የትኛው አትክልት ነው ብርቱካንማ ቀለም?", options: ["ቲማቲም", "ድንች", "ካሮት", "ጎመን"], answer: "ካሮት" },
+                        { question: "የ'ጣፋጭ' ተቃራኒ ምንድን ነው?", options: ["መራራ", "ጨዋማ", "ጎምዛዛ", "ቅመም የበዛበት"], answer: "መራራ" },
+                        { question: "መጽሐፍ የምታነበው የት ነው?", options: ["ወጥ ቤት", "መኝታ ክፍል", "መኖሪያ ክፍል", "ቤተ መጻሕፍት"], answer: "ቤተ መጻሕፍት" },
+                        { question: "'ዝናብ' የሚለው ቃል ስንት ፊደሎች አሉት?", options: ["3", "4", "5", "6"], answer: "4" },
+                        { question: "የቱ እንስሳ ነው የሚዘል?", options: ["ዓሳ", "ወፍ", "ዝንጀሮ", "እባብ"], answer: "ዝንጀሮ" },
+                        { question: "ለማንበብ የምትጠቀመው የትኛውን ነው?", options: ["መጽሐፍ", "ብዕር", "እርሳስ", "ጠረጴዛ"], answer: "መጽሐፍ" },
+                        { question: "የ'ፈጣን' ተቃራኒ ምንድን ነው?", options: ["ቀርፋፋ", "አጭር", "ትልቅ", "ሰፊ"], answer: "ቀርፋፋ" },
+                        { question: "የትኛው ቀለም ነው የደም ቀለም?", options: ["ሰማያዊ", "አረንጓዴ", "ቢጫ", "ቀይ"], answer: "ቀይ" },
+                        { question: "በየትኛው የሰውነት ክፍል ነው የምታሸተው?", options: ["አፍ", "ጆሮ", "አፍንጫ", "ዓይን"], answer: "አፍንጫ" },
+                        { question: "'ዛፍ' የሚለው ቃል የመጨረሻ ፊደል ምንድን ነው?", options: ["ዛ", "ፍ", "ፌ", "ፎ"], answer: "ፍ" },
+                        { question: "የቱ አትክልት ነው ክብ?", options: ["ካሮት", "ቲማቲም", "ድንች", "ሽንኩርት"], answer: "ቲማቲም" },
+                        { question: "የ'ቀን' ተቃራኒ ምንድን ነው?", options: ["ጠዋት", "ቀትር", "ማታ", "ሌሊት"], answer: "ሌሊት" },
+                        { question: "ለመጫወት የምትጠቀመው የትኛውን ነው?", options: ["ኳስ", "መጽሐፍ", "እርሳስ", "ጠረጴዛ"], answer: "ኳስ" },
+                        { question: "'ድመት' የሚለው ቃል ስንት ፊደሎች አሉት?", options: ["2", "3", "4", "5"], answer: "3" },
+                        { question: "የቱ እንስሳ ነው የሚጎርፍ?", options: ["ወፍ", "ዓሳ", "እባብ", "ውሻ"], answer: "እባብ" },
+                        { question: "ለማጥናት የምትጠቀመው የትኛውን ነው?", options: ["መጽሐፍ", "መጫወቻ", "ብስክሌት", "ቴሌቪዥን"], answer: "መጽሐፍ" }
+                    ]
+                },
+                {
+                    name: "የ KG 1 አማርኛ",
+                    id: "kg1_amharic",
+                    questions: [
+                        { question: "የአማርኛ ፊደላት ስንት ናቸው?", options: ["26", "33", "40", "45"], answer: "33" },
+                        { question: "የ'ፈረስ' ግስ ምንድን ነው?", options: ["መብረር", "መዋኘት", "መሮጥ", "መዝለል"], answer: "መሮጥ" },
+                        { question: "የ'ውሻ' ሴት ምንድን ናት?", options: ["ድመት", "ውሻ", "ውሻዬ", "አንበሳ"], answer: "ውሻ" },
+                        { question: "የቱ ቃል ነው ትክክል: 'ቤቴ' ወይስ 'ቤቴ'?", options: ["ቤቴ", "ቤቴ", "ሁለቱም", "ምንም"], answer: "ቤቴ" },
+                        { question: "የ'ትናንት' ተቃራኒ ምንድን ነው?", options: ["ዛሬ", "ነገ", "አሁን", "በፊት"], answer: "ነገ" },
+                        { question: "'ውድ' የሚለው ቃል ምን ማለት ነው?", options: ["ርካሽ", "ጣፋጭ", "ውድ", "ጥሩ"], answer: "ውድ" },
+                        { question: "የቱ ቃል ነው ግስ?", options: ["ጠረጴዛ", "መሮጥ", "ቀይ", "ውሃ"], answer: "መሮጥ" },
+                        { question: "የ'አበበ' ግስ በ'ት' ሲጠናቀቅ ምንድን ነው?", options: ["አበበች", "አበቡ", "አበብ", "አበባ"], answer: "አበበች" },
+                        { question: "የ'ትንሽ' ተቃራኒ ቃል ምንድን ነው?", options: ["መካከለኛ", "ትልቅ", "ረዥም", "አጭር"], answer: "ትልቅ" },
+                        { question: "'መጽሐፍ' የሚለው ቃል ብዙ ቁጥር ምንድን ነው?", options: ["መጽሐፎች", "መጽሐፍ", "መጽሐፍት", "መጽሐፋችሁ"], answer: "መጽሐፎች" },
+                        { question: "የ'መብላት' ያለፈ ጊዜ ግስ ምንድን ነው?", options: ["በላሁ", "እበላለሁ", "እየበላሁ ነው", "ልበላ"], answer: "በላሁ" },
+                        { question: "የቱ ቃል ነው ቅፅል?", options: ["ሩጫ", "ቆንጆ", "ቤት", "በፍጥነት"], answer: "ቆንጆ" },
+                        { question: "'ጎጆ' የሚለው ቃል ሌላ ትርጉም ምንድን ነው?", options: ["መኖሪያ", "መኪና", "ዛፍ", "ውሃ"], answer: "መኖሪያ" },
+                        { question: "የ'ብዙ' ተቃራኒ ቃል ምንድን ነው?", options: ["ጥቂት", "ሁሉንም", "አንድ", "ምንም"], answer: "ጥቂት" },
+                        { question: "'ሰማይ' የሚለው ቃል ሌላ ቃል ምንድን ነው?", options: ["ምድር", "ደመና", "ከፍታ", "ጠፈር"], answer: "ጠፈር" },
+                        { question: "የ'መጠጣት' ወደፊት ጊዜ ግስ ምንድን ነው?", options: ["ጠጣሁ", "እየጠጣሁ ነው", "እጠጣለሁ", "ልጠጣ"], answer: "እጠጣለሁ" },
+                        { question: "የቱ ቃል ነው ተውላጠ ስም?", options: ["እኔ", "ጠረጴዛ", "ሩጫ", "ቀይ"], answer: "እኔ" },
+                        { question: "'ውሃ' የሚለው ቃል ሌላ ትርጉም ምንድን ነው?", options: ["ወተት", "ፈሳሽ", "ጁስ", "ሻይ"], answer: "ፈሳሽ" },
+                        { question: "የ'ቀዝቃዛ' ተቃራኒ ቃል ምንድን ነው?", options: ["ትኩስ", "ሙቅ", "ሞቃት", "ቀዝቃዛ"], answer: "ሙቅ" },
+                        { question: "'አበባ' የሚለው ቃል ብዙ ቁጥር ምንድን ነው?", options: ["አበባዎች", "አበባ", "አበባዬ", "አበባዎች"], answer: "አበባዎች" },
+                        { question: "የ'መሄድ' ያለፈ ጊዜ ግስ ምንድን ነው?", options: ["እሄዳለሁ", "ሄድኩ", "እየሄድኩ ነው", "ልሂድ"], answer: "ሄድኩ" },
+                        { question: "የቱ ቃል ነው ስም?", options: ["ቀይ", "መሮጥ", "ወንበር", "በፍጥነት"], answer: "ወንበር" },
+                        { question: "'ብዕር' የሚለው ቃል ሌላ ትርጉም ምንድን ነው?", options: ["እርሳስ", "መጻፊያ", "መጽሐፍ", "ጠረጴዛ"], answer: "መጻፊያ" },
+                        { question: "የ'ጥሩ' ተቃራኒ ቃል ምንድን ነው?", options: ["መጥፎ", "ቆንጆ", "ትልቅ", "ትንሽ"], answer: "መጥፎ" },
+                        { question: "'ዛፍ' የሚለው ቃል ሌላ ቃል ምንድን ነው?", options: ["ቅጠል", "ጫካ", "ምድር", "ውሃ"], answer: "ጫካ" },
+                        { question: "የ'መተኛት' ያለፈ ጊዜ ግስ ምንድን ነው?", options: ["እተኛለሁ", "ተኛሁ", "እየተኛሁ ነው", "ልተኛ"], answer: "ተኛሁ" },
+                        { question: "የቱ ቃል ነው ተውሳክ?", options: ["በፍጥነት", "ጠረጴዛ", "ሩጫ", "ቀይ"], answer: "በፍጥነት" },
+                        { question: "'ቀለም' የሚለው ቃል ሌላ ትርጉም ምንድን ነው?", options: ["ቀይ", "ብሩህነት", "ስዕል", "መስመር"], answer: "ስዕል" },
+                        { question: "የ'ክፍት' ተቃራኒ ቃል ምንድን ነው?", options: ["የተዘጋ", "ሰፊ", "ትንሽ", "ትልቅ"], answer: "የተዘጋ" },
+                        { question: "'ብርሃን' የሚለው ቃል ሌላ ቃል ምንድን ነው?", options: ["ጨለማ", "ፀሐይ", "ብሩህነት", "ሌሊት"], answer: "ብሩህነት" },
+                        { question: "የ'መጻፍ' ያለፈ ጊዜ ግስ ምንድን ነው?", options: ["እጽፋለሁ", "ጻፍኩ", "እየጻፍኩ ነው", "ልጻፍ"], answer: "ጻፍኩ" },
+                        { question: "የቱ ቃል ነው መስተፃምር?", options: ["እና", "ጠረጴዛ", "ሩጫ", "ቀይ"], answer: "እና" },
+                        { question: "'ልጅ' የሚለው ቃል ሌላ ትርጉም ምንድን ነው?", options: ["ወላጅ", "ህፃን", "ጎልማሳ", "አዋቂ"], answer: "ህፃን" },
+                        { question: "የ'ቀጭን' ተቃራኒ ቃል ምንድን ነው?", options: ["ወፍራም", "ትልቅ", "ረዥም", "አጭር"], answer: "ወፍራም" },
+                        { question: "'ምግብ' የሚለው ቃል ሌላ ቃል ምንድን ነው?", options: ["ውሃ", "ምግብ", "መጠጥ", "አትክልት"], answer: "ምግብ" },
+                        { question: "የ'መናገር' ያለፈ ጊዜ ግስ ምንድን ነው?", options: ["እናገራለሁ", "ተናገርኩ", "እየተናገርኩ ነው", "ልናገር"], answer: "ተናገርኩ" },
+                        { question: "የቱ ቃል ነው ቁጥር?", options: ["አራት", "ቀይ", "መሮጥ", "በፍጥነት"], answer: "አራት" },
+                        { question: "'ሙዚቃ' የሚለው ቃል ሌላ ትርጉም ምንድን ነው?", options: ["ድምፅ", "ዘፈን", "ጩኸት", "ዝምታ"], answer: "ዘፈን" },
+                        { question: "የ'ፍርሃት' ተቃራኒ ቃል ምንድን ነው?", options: ["ድፍረት", "ሀዘን", "ደስታ", "ቁጣ"], answer: "ድፍረት" },
+                        { question: "'ጥቁር' የሚለው ቃል ሌላ ቃል ምንድን ነው?", options: ["ቀይ", "ነጭ", "ጨለማ", "ብሩህ"], answer: "ጨለማ" },
+                        { question: "የ'መሮጥ' ያለፈ ጊዜ ግስ ምንድን ነው?", options: ["እሮጣለሁ", "ሮጥኩ", "እየሮጥኩ ነው", "ልሮጥ"], answer: "ሮጥኩ" },
+                        { question: "የቱ ቃል ነው መስተዋድድ?", options: ["ላይ", "ጠረጴዛ", "መሮጥ", "ቀይ"], answer: "ላይ" },
+                        { question: "'ገንዘብ' የሚለው ቃል ሌላ ትርጉም ምንድን ነው?", options: ["ሀብት", "ወረቀት", "ምግብ", "ውሃ"], answer: "ሀብት" },
+                        { question: "የ'መብራት' ተቃራኒ ቃል ምንድን ነው?", options: ["ጨለማ", "ብርሃን", "ሌሊት", "ቀን"], answer: "ጨለማ" },
+                        { question: "'ውድ' የሚለው ቃል ሌላ ቃል ምንድን ነው?", options: ["ርካሽ", "ውድ", "ቆንጆ", "ጥሩ"], answer: "ውድ" },
+                        { question: "የ'መግዛት' ያለፈ ጊዜ ግስ ምንድን ነው?", options: ["እገዛለሁ", "ገዛሁ", "እየገዛሁ ነው", "ልግዛ"], answer: "ገዛሁ" },
+                        { question: "የቱ ቃል ነው ስም?", options: ["ጥሩ", "እኔ", "ውሻ", "በፍጥነት"], answer: "ውሻ" },
+                        { question: "'ጥያቄ' የሚለው ቃል ሌላ ትርጉም ምንድን ነው?", options: ["መልስ", "ችግር", "መልካም", "ቃለ መጠይቅ"], answer: "ቃለ መጠይቅ" },
+                        { question: "የ'ጠባብ' ተቃራኒ ቃል ምንድን ነው?", options: ["ሰፊ", "ረዥም", "አጭር", "ትንሽ"], answer: "ሰፊ" },
+                        { question: "'ጊዜ' የሚለው ቃል ሌላ ቃል ምንድን ነው?", options: ["ሰዓት", "ቀን", "ሳምንት", "አመት"], answer: "ሰዓት" }
+                    ]
+                },
+                {
+                    name: "የ KG 2 አማርኛ",
+                    id: "kg2_amharic",
+                    questions: [
+                        { question: "'እሱ በልቷል' የሚለው ዓረፍተ ነገር ውስጥ ግሱ ምንድን ነው?", options: ["እሱ", "በልቷል", "ነው", "ምንም"], answer: "በልቷል" },
+                        { question: "የ'ትልቅ ቤት' የሚለው ሐረግ ውስጥ ቅፅሉ ምንድን ነው?", options: ["ትልቅ", "ቤት", "ነው", "ምንም"], answer: "ትልቅ" },
+                        { question: "'ልጁ በፍጥነት ይሮጣል' የሚለው ዓረፍተ ነገር ውስጥ ተውሳኩ ምንድን ነው?", options: ["ልጁ", "በፍጥነት", "ይሮጣል", "ምንም"], answer: "በፍጥነት" },
+                        { question: "የ'መጽሐፍ' ብዙ ቁጥር ምንድን ነው?", options: ["መጽሐፍ", "መጽሐፍት", "መጽሐፎች", "መጽሐፋችሁ"], answer: "መጽሐፎች" },
+                        { question: "'እኔና አንተ እንሄዳለን' የሚለው ዓረፍተ ነገር ውስጥ መስተፃምሩ ምንድን ነው?", options: ["እኔ", "አንተ", "እና", "እንሄዳለን"], answer: "እና" },
+                        { question: "የ'ብርሃን' ተቃራኒ ቃል ምንድን ነው?", options: ["ፀሐይ", "ጨለማ", "ቀን", "ሌሊት"], answer: "ጨለማ" },
+                        { question: "የ'መምጣት' ያለፈ ጊዜ ግስ ምንድን ነው?", options: ["እመጣለሁ", "መጣሁ", "እየመጣሁ ነው", "ልምጣ"], answer: "መጣሁ" },
+                        { question: "'ወንበር' የሚለው ቃል ስም ነው ወይስ ግስ?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ስም" },
+                        { question: "የ'ደስተኛ' ተቃራኒ ቃል ምንድን ነው?", options: ["ሀዘንተኛ", "ቁጡ", "አስገራሚ", "የተረጋጋ"], answer: "ሀዘንተኛ" },
+                        { question: "አንድ ወረቀት ላይ ለመጻፍ ምን ትጠቀማለህ?", options: ["መቀስ", "እርሳስ", "ማጥፊያ", "ገዥ"], answer: "እርሳስ" },
+                        { question: "'እነሱ ይበላሉ' የሚለው ግስ ወደ ያለፈ ጊዜ ሲቀየር ምንድን ነው?", options: ["በሉ", "ይበሉ", "በሉ", "በሉ"], answer: "በሉ" },
+                        { question: "የ'ትንሽ ልጅ' የሚለው ሐረግ ውስጥ ስሙ ምንድን ነው?", options: ["ትንሽ", "ልጅ", "ነው", "ምንም"], answer: "ልጅ" },
+                        { question: "'ዛሬ ሙቀት ነው' የሚለው ዓረፍተ ነገር ውስጥ ቅፅሉ ምንድን ነው?", options: ["ዛሬ", "ሙቀት", "ነው", "ምንም"], answer: "ሙቀት" },
+                        { question: "የ'አበበ' ግስ ወደ ብዙ ቁጥር ሲቀየር ምንድን ነው?", options: ["አበበች", "አበቡ", "አበብ", "አበባ"], answer: "አበቡ" },
+                        { question: "'እሱ በደንብ ይዘምራል' የሚለው ዓረፍተ ነገር ውስጥ ተውሳኩ ምንድን ነው?", options: ["እሱ", "በደንብ", "ይዘምራል", "ምንም"], answer: "በደንብ" },
+                        { question: "የ'መጠጣት' ያለፈ ጊዜ ግስ ምንድን ነው?", options: ["ጠጣ", "ይጠጣል", "እየጠጣ ነው", "ልጠጣ"], answer: "ጠጣ" },
+                        { question: "የቱ ቃል ነው ግስ: 'መሮጥ', 'ቀይ', 'ውሃ', 'ቤት'?", options: ["መሮጥ", "ቀይ", "ውሃ", "ቤት"], answer: "መሮጥ" },
+                        { question: "የ'ውድ' ተቃራኒ ቃል ምንድን ነው?", options: ["ርካሽ", "ጥሩ", "ውድ", "ጣፋጭ"], answer: "ርካሽ" },
+                        { question: "'አንድ' የሚለው ቃል ቁጥር ነው ወይስ ስም?", options: ["ቁጥር", "ስም", "ቅፅል", "ተውላጠ ስም"], answer: "ቁጥር" },
+                        { question: "ከ'ትምህርት ቤት' ጋር የሚሄደው የቱ ነው?", options: ["ምግብ ቤት", "ሆስፒታል", "ተማሪ", "ሱቅ"], answer: "ተማሪ" },
+                        { question: "'እኔ እመጣለሁ' የሚለው ግስ ወደ ወደፊት ጊዜ ሲቀየር ምንድን ነው?", options: ["መጣሁ", "እመጣለሁ", "እየመጣሁ ነው", "ልምጣ"], answer: "እመጣለሁ" },
+                        { question: "የ'ረዥም' ተቃራኒ ቃል ምንድን ነው?", options: ["አጭር", "ትልቅ", "ትንሽ", "ሰፊ"], answer: "አጭር" },
+                        { question: "'እሷ ውሻ አላት' የሚለው ዓረፍተ ነገር ውስጥ ስሙ ምንድን ነው?", options: ["እሷ", "ውሻ", "አላት", "ምንም"], answer: "ውሻ" },
+                        { question: "የ'መብላት' ወደፊት ጊዜ ግስ ምንድን ነው?", options: ["በላሁ", "እበላለሁ", "እየበላሁ ነው", "ልበላ"], answer: "እበላለሁ" },
+                        { question: "'ዝግጁ ነኝ' የሚለው ዓረፍተ ነገር ውስጥ ቅፅሉ ምንድን ነው?", options: ["ዝግጁ", "ነኝ", "ነው", "ምንም"], answer: "ዝግጁ" },
+                        { question: "የ'ማንበብ' ያለፈ ጊዜ ግስ ምንድን ነው?", options: ["እያነበብኩ ነው", "አነበብኩ", "አነባለሁ", "ላንብብ"], answer: "አነበብኩ" },
+                        { question: "የቱ ቃል ነው ግስ: 'ብዕር', 'መሄድ', 'ጥቁር', 'ወንበር'?", options: ["ብዕር", "መሄድ", "ጥቁር", "ወንበር"], answer: "መሄድ" },
+                        { question: "የ'ጨለማ' ተቃራኒ ቃል ምንድን ነው?", options: ["ብርሃን", "ሌሊት", "ጥቁር", "ቀን"], answer: "ብርሃን" },
+                        { question: "'እኛ እንጫወታለን' የሚለው ግስ ወደ ያለፈ ጊዜ ሲቀየር ምንድን ነው?", options: ["ተጫወትን", "እንጫወታለን", "እየተጫወትን ነው", "እንጫወት"], answer: "ተጫወትን" },
+                        { question: "አንድ ነገርን ለመመልከት ምን ትጠቀማለህ?", options: ["ጆሮ", "አፍ", "አፍንጫ", "ዓይን"], answer: "ዓይን" },
+                        { question: "'አበባው ቆንጆ ነው' የሚለው ዓረፍተ ነገር ውስጥ ስሙ ምንድን ነው?", options: ["አበባው", "ቆንጆ", "ነው", "ምንም"], answer: "አበባው" },
+                        { question: "የ'መዘመር' ወደፊት ጊዜ ግስ ምንድን ነው?", options: ["ዘመርኩ", "እዘምራለሁ", "እየዘመርኩ ነው", "ልዘምር"], answer: "እዘምራለሁ" },
+                        { question: "'በደስታ' የሚለው ቃል ተውሳክ ነው ወይስ ቅፅል?", options: ["ተውሳክ", "ቅፅል", "ስም", "ግስ"], answer: "ተውሳክ" },
+                        { question: "የ'ቀይ አበባ' የሚለው ሐረግ ውስጥ ስሙ ምንድን ነው?", options: ["ቀይ", "አበባ", "ነው", "ምንም"], answer: "አበባ" },
+                        { question: "'እሷ ትጽፋለች' የሚለው ግስ ወደ ያለፈ ጊዜ ሲቀየር ምንድን ነው?", options: ["ጻፈች", "ትጽፋለች", "እየጻፈች ነው", "ትጻፍ"], answer: "ጻፈች" },
+                        { question: "የ'ትኩስ' ተቃራኒ ቃል ምንድን ነው?", options: ["ቀዝቃዛ", "ብርድ", "ሙቅ", "ሞቃት"], answer: "ቀዝቃዛ" },
+                        { question: "የቱ ቃል ነው ቅፅል: 'መብላት', 'ረዥም', 'ውሃ', 'ሮጠ'?", options: ["መብላት", "ረዥም", "ውሃ", "ሮጠ"], answer: "ረዥም" },
+                        { question: "'እነሱ በፍጥነት ይሮጣሉ' የሚለው ዓረፍተ ነገር ውስጥ ግሱ ምንድን ነው?", options: ["እነሱ", "በፍጥነት", "ይሮጣሉ", "ምንም"], answer: "ይሮጣሉ" },
+                        { question: "የ'መቁረጥ' ያለፈ ጊዜ ግስ ምንድን ነው?", options: ["እቆርጣለሁ", "ቆረጥኩ", "እየቆረጥኩ ነው", "ልቆርጥ"], answer: "ቆረጥኩ" },
+                        { question: "'ምሽት' የሚለው ቃል ተቃራኒ ምንድን ነው?", options: ["ጠዋት", "ቀትር", "ማታ", "ሌሊት"], answer: "ጠዋት" },
+                        { question: "የ'መልካም' ተቃራኒ ቃል ምንድን ነው?", options: ["መጥፎ", "ጥሩ", "ቆንጆ", "አስቀያሚ"], answer: "መጥፎ" },
+                        { question: "'አልጋ' የሚለው ቃል ስም ነው ወይስ ግስ?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ስም" },
+                        { question: "የ'መስጠት' ያለፈ ጊዜ ግስ ምንድን ነው?", options: ["እሰጣለሁ", "ሰጠሁ", "እየሰጠሁ ነው", "ልስጥ"], answer: "ሰጠሁ" },
+                        { question: "የቱ ቃል ነው ተውላጠ ስም: 'መኪና', 'እሷ', 'ትልቅ', 'በፍጥነት'?", options: ["መኪና", "እሷ", "ትልቅ", "በፍጥነት"], answer: "እሷ" },
+                        { question: "'አንድ ወንድ ልጅ' የሚለው ሐረግ ውስጥ ቁጥሩ ምንድን ነው?", options: ["አንድ", "ወንድ", "ልጅ", "ምንም"], answer: "አንድ" },
+                        { question: "የ'መብረር' ያለፈ ጊዜ ግስ ምንድን ነው?", options: ["እበራለሁ", "በረርኩ", "እየበረርኩ ነው", "ልበር"], answer: "በረርኩ" },
+                        { question: "'በጣም ጥሩ' የሚለው ሐረግ ውስጥ ተውሳኩ ምንድን ነው?", options: ["በጣም", "ጥሩ", "ነው", "ምንም"], answer: "በጣም" },
+                        { question: "የ'አፍ' ሌላ ቃል ምንድን ነው?", options: ["አፍንጫ", "ጆሮ", "ዓይን", "አፉ"], answer: "አፉ" },
+                        { question: "የ'ቅርብ' ተቃራኒ ቃል ምንድን ነው?", options: ["ሩቅ", "አጭር", "ትልቅ", "ትንሽ"], answer: "ሩቅ" },
+                        { question: "'ዝምታ' የሚለው ቃል ሌላ ቃል ምንድን ነው?", options: ["ድምፅ", "ጩኸት", "ሰላም", "ዝም"], answer: "ዝም" }
+                    ]
+                },
+                {
+                    name: "የ KG 3 አማርኛ",
+                    id: "kg3_amharic",
+                    questions: [
+                        { question: "የአማርኛ ፊደላት ዋና ዋና ቤተሰቦች ስንት ናቸው?", options: ["4", "5", "6", "7"], answer: "7" },
+                        { question: "የቱ ቃል ነው ግስ: 'ጽዳት', 'ጠረጴዛ', 'ማጽዳት', 'ሰማያዊ'?", options: ["ጽዳት", "ጠረጴዛ", "ማጽዳት", "ሰማያዊ"], answer: "ማጽዳት" },
+                        { question: "የ'ልጅ' የፆታ ለውጥ (ሴት) ምንድን ነው?", options: ["ወንድ ልጅ", "ሴት ልጅ", "ልጆች", "ጎልማሳ"], answer: "ሴት ልጅ" },
+                        { question: "'እሷ በጣም ቆንጆ ነች' የሚለው ዓረፍተ ነገር ውስጥ ቅፅሉ ምንድን ነው?", options: ["እሷ", "በጣም", "ቆንጆ", "ነች"], answer: "ቆንጆ" },
+                        { question: "የ'መጻፍ' የቁጥር ለውጥ (ብዙ) ምንድን ነው?", options: ["ጻፈ", "ጻፉ", "ትጽፋለች", "ይጽፋሉ"], answer: "ጻፉ" },
+                        { question: "'ዛፍ' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የጋራ ስም" },
+                        { question: "የ'መብላት' የወደፊት ጊዜ ግስ ምንድን ነው?", options: ["በላ", "ይበላል", "ይበላል", "ልበላ"], answer: "ይበላል" },
+                        { question: "የ'ትንሽ' ተቃራኒ ቃል ምንድን ነው?", options: ["መካከለኛ", "ትልቅ", "ረዥም", "አጭር"], answer: "ትልቅ" },
+                        { question: "'በፍጥነት' የሚለው ቃል ምን አይነት ቃል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ተውሳክ" },
+                        { question: "የ'አልጋ' ብዙ ቁጥር ምንድን ነው?", options: ["አልጋዎች", "አልጋ", "አልጋዬ", "አልጋዎች"], answer: "አልጋዎች" },
+                        { question: "የ'መሄድ' ያለፈ ጊዜ ግስ ለሴት ምንድን ነው?", options: ["ሄደ", "ሄደች", "ሄዱ", "ትሄዳለች"], answer: "ሄደች" },
+                        { question: "የ'አዲስ' ተቃራኒ ቃል ምንድን ነው?", options: ["ጥንታዊ", "የድሮ", "አሮጌ", "አዲስ"], answer: "አሮጌ" },
+                        { question: "'ውሃ' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የጋራ ስም" },
+                        { question: "የ'መምጣት' የወደፊት ጊዜ ግስ ለብዙ ቁጥር ምንድን ነው?", options: ["መጣ", "ይመጣሉ", "መጡ", "ትመጣላችሁ"], answer: "ይመጣሉ" },
+                        { question: "'እኔና እሷ እንጫወታለን' የሚለው ዓረፍተ ነገር ውስጥ መስተፃምሩ ምንድን ነው?", options: ["እኔ", "እሷ", "እና", "እንጫወታለን"], answer: "እና" },
+                        { question: "የ'ክፉ' ተቃራኒ ቃል ምንድን ነው?", options: ["መልካም", "ጥሩ", "መጥፎ", "አስቀያሚ"], answer: "መልካም" },
+                        { question: "የ'መስጠት' የወደፊት ጊዜ ግስ ምንድን ነው?", options: ["ሰጠ", "ይሰጣል", "ይሰጣሉ", "እሰጣለሁ"], answer: "ይሰጣል" },
+                        { question: "'ሰማያዊ' የሚለው ቃል ምን አይነት ቃል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ቅፅል" },
+                        { question: "የ'መዝፈን' ያለፈ ጊዜ ግስ ለወንድ ምንድን ነው?", options: ["ዘመረች", "ዘመረ", "ዘመሩ", "ይዘምራል"], answer: "ዘመረ" },
+                        { question: "የ'ረዥም' ብዙ ቁጥር ምንድን ነው?", options: ["ረዥም", "ረዣዥም", "ረዥሞቹ", "ረዣዥሞቹ"], answer: "ረዣዥም" },
+                        { question: "'መጽሐፍ ቅዱስ' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የግል ስም" },
+                        { question: "የ'መብረር' ያለፈ ጊዜ ግስ ለሴት ምንድን ነው?", options: ["በረረ", "በረረች", "በሩ", "ትበራለች"], answer: "በረረች" },
+                        { question: "'በደንብ' የሚለው ቃል ምን አይነት ቃል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ተውሳክ" },
+                        { question: "የ'ጠረጴዛ' ብዙ ቁጥር ምንድን ነው?", options: ["ጠረጴዛ", "ጠረጴዛዎች", "ጠረጴዛዬ", "ጠረጴዛዎ"], answer: "ጠረጴዛዎች" },
+                        { question: "የ'ትምህርት' ግስ ምንድን ነው?", options: ["ማስተማር", "መማር", "መምህር", "ተማሪ"], answer: "ማስተማር" },
+                        { question: "'እነሱ ይጽፋሉ' የሚለው ግስ ወደ የወደፊት ጊዜ ሲቀየር ምንድን ነው?", options: ["ጻፉ", "ይጽፋሉ", "እየጻፉ ነው", "ይጻፉ"], answer: "ይጽፋሉ" },
+                        { question: "የ'ሩቅ' ተቃራኒ ቃል ምንድን ነው?", options: ["ቅርብ", "አጭር", "ትልቅ", "ትንሽ"], answer: "ቅርብ" },
+                        { question: "'ቤት' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የጋራ ስም" },
+                        { question: "የ'መጠጣት' ያለፈ ጊዜ ግስ ለሴት ምንድን ነው?", options: ["ጠጣ", "ጠጣች", "ጠጡ", "ትጠጣለች"], answer: "ጠጣች" },
+                        { question: "'በዝግታ' የሚለው ቃል ምን አይነት ቃል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ተውሳክ" },
+                        { question: "የ'ቆንጆ' ተቃራኒ ቃል ምንድን ነው?", options: ["አስቀያሚ", "መጥፎ", "ጥሩ", "ትልቅ"], answer: "አስቀያሚ" },
+                        { question: "'ወንበር' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የጋራ ስም" },
+                        { question: "የ'ማንበብ' የወደፊት ጊዜ ግስ ለወንድ ምንድን ነው?", options: ["አነበበ", "ያነባል", "አነበቡ", "ታነባለች"], answer: "ያነባል" },
+                        { question: "'እሱ በደስታ ይኖራል' የሚለው ዓረፍተ ነገር ውስጥ ተውሳኩ ምንድን ነው?", options: ["እሱ", "በደስታ", "ይኖራል", "ምንም"], answer: "በደስታ" },
+                        { question: "የ'መሮጥ' የወደፊት ጊዜ ግስ ለብዙ ቁጥር ምንድን ነው?", options: ["ሮጡ", "ይሮጣሉ", "ትሮጣለች", "ይሮጣል"], answer: "ይሮጣሉ" },
+                        { question: "የ'ብሩህ' ተቃራኒ ቃል ምንድን ነው?", options: ["ጨለማ", "ብርሃን", "ጥቁር", "ቀን"], answer: "ጨለማ" },
+                        { question: "የቱ ቃል ነው መስተፃምር: 'ላይ', 'እና', 'ጠረጴዛ', 'መሮጥ'?", options: ["ላይ", "እና", "ጠረጴዛ", "መሮጥ"], answer: "እና" },
+                        { question: "'አበባ' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የጋራ ስም" },
+                        { question: "የ'መዝፈን' ያለፈ ጊዜ ግስ ለብዙ ቁጥር ምንድን ነው?", options: ["ዘመረ", "ዘመሩ", "ይዘምራል", "ትዘምራለች"], answer: "ዘመሩ" },
+                        { question: "'ትምህርት' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የጋራ ስም" },
+                        { question: "የ'ሀዘንተኛ' ተቃራኒ ቃል ምንድን ነው?", options: ["ደስተኛ", "ቁጡ", "የተረጋጋ", "አስገራሚ"], answer: "ደስተኛ" },
+                        { question: "'ገንዘብ' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የጋራ ስም" },
+                        { question: "የ'መጻፍ' የወደፊት ጊዜ ግስ ለወንድ ምንድን ነው?", options: ["ጻፈ", "ይጽፋል", "ትጽፋለች", "ይጽፋሉ"], answer: "ይጽፋል" },
+                        { question: "የቱ ቃል ነው ተውሳክ: 'ትልቅ', 'ቆንጆ', 'በፍጥነት', 'ውሻ'?", options: ["ትልቅ", "ቆንጆ", "በፍጥነት", "ውሻ"], answer: "በፍጥነት" },
+                        { question: "'ብዕር' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የጋራ ስም" },
+                        { question: "የ'መግዛት' የወደፊት ጊዜ ግስ ለብዙ ቁጥር ምንድን ነው?", options: ["ገዛ", "ይገዛሉ", "ገዙ", "ትገዛለች"], answer: "ይገዛሉ" },
+                        { question: "የ'ብርድ' ተቃራኒ ቃል ምንድን ነው?", options: ["ሙቀት", "ቀዝቃዛ", "ትኩስ", "ሞቃት"], answer: "ሙቀት" },
+                        { question: "'መኪና' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የጋራ ስም" },
+                        { question: "የ'አጭር' ተቃራኒ ቃል ምንድን ነው?", options: ["ረዥም", "ትልቅ", "ትንሽ", "ሰፊ"], answer: "ረዥም" },
+                        { question: "'ሰዓት' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የጋራ ስም" }
+                    ]
+                },
+                {
+                    name: "የ 1ኛ ክፍል አማርኛ",
+                    id: "grade1_amharic",
+                    questions: [
+                        { question: "የአማርኛ ፊደላት ተናባቢ ፊደሎች ስንት ናቸው?", options: ["7", "26", "33", "45"], answer: "26" },
+                        { question: "የ'እርሱ' ተውላጠ ስም ለሴት ሲቀየር ምንድን ነው?", options: ["እሷ", "እነሱ", "እኔ", "አንተ"], answer: "እሷ" },
+                        { question: "የ'ማንበብ' ያለፈ ጊዜ ግስ ለብዙ ቁጥር ምንድን ነው?", options: ["አነበበ", "አነበቡ", "ያነባሉ", "ታነባለች"], answer: "አነበቡ" },
+                        { question: "የ'ጣፋጭ ምግብ' የሚለው ሐረግ ውስጥ ስሙ ምንድን ነው?", options: ["ጣፋጭ", "ምግብ", "ነው", "ምንም"], answer: "ምግብ" },
+                        { question: "'በዝግታ ይሄዳል' የሚለው ዓረፍተ ነገር ውስጥ ተውሳኩ ምንድን ነው?", options: ["በዝግታ", "ይሄዳል", "ነው", "ምንም"], answer: "በዝግታ" },
+                        { question: "የ'ትልቅ' ተቃራኒ ቃል ምንድን ነው?", options: ["ትንሽ", "መካከለኛ", "ረዥም", "ሰፊ"], answer: "ትንሽ" },
+                        { question: "የ'መጠጣት' የወደፊት ጊዜ ግስ ለሴት ምንድን ነው?", options: ["ጠጣች", "ትጠጣለች", "ይጠጣሉ", "ጠጡ"], answer: "ትጠጣለች" },
+                        { question: "'ውሃ' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "የተረጋገጠ ስም"], answer: "የጋራ ስም" },
+                        { question: "የ'ሰላም' ተቃራኒ ቃል ምንድን ነው?", options: ["ጦርነት", "ፍቅር", "መረጋጋት", "ደስታ"], answer: "ጦርነት" },
+                        { question: "አንድ ክፍል ውስጥ ለመማር የምትጠቀምበት ነገር ምንድን ነው?", options: ["ጠረጴዛ", "ወንበር", "መጽሐፍ", "ሁሉንም"], answer: "ሁሉንም" },
+                        { question: "የ'መጻፍ' ያለፈ ጊዜ ግስ ለብዙ ቁጥር ምንድን ነው?", options: ["ጻፈ", "ጻፉ", "ይጽፋሉ", "ትጽፋለች"], answer: "ጻፉ" },
+                        { question: "የ'ቆንጆ' ተቃራኒ ቃል ምንድን ነው?", options: ["አስቀያሚ", "ጥሩ", "መጥፎ", "ትልቅ"], answer: "አስቀያሚ" },
+                        { question: "'እነሱ ይኖራሉ' የሚለው ግስ ወደ ያለፈ ጊዜ ሲቀየር ምንድን ነው?", options: ["ኖረ", "ኖሩ", "ይኖራሉ", "ትኖራለች"], answer: "ኖሩ" },
+                        { question: "የ'ዛፍ' ብዙ ቁጥር ምንድን ነው?", options: ["ዛፍ", "ዛፎች", "ዛፍዬ", "ዛፎች"], answer: "ዛፎች" },
+                        { question: "'በደንብ' የሚለው ቃል ምን አይነት ቃል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ተውሳክ" },
+                        { question: "የ'መሮጥ' ያለፈ ጊዜ ግስ ለሴት ምንድን ነው?", options: ["ሮጠ", "ሮጠች", "ሮጡ", "ትሮጣለች"], answer: "ሮጠች" },
+                        { question: "የ'ጣፋጭ' ተቃራኒ ቃል ምንድን ነው?", options: ["መራራ", "ጎምዛዛ", "ጨዋማ", "ቅመም የበዛበት"], answer: "መራራ" },
+                        { question: "'እርሳስ' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የጋራ ስም" },
+                        { question: "የ'መዘመር' የወደፊት ጊዜ ግስ ለብዙ ቁጥር ምንድን ነው?", options: ["ዘመረ", "ይዘምራሉ", "ዘመሩ", "ትዘምራለች"], answer: "ይዘምራሉ" },
+                        { question: "የ'ብርሃን' ተቃራኒ ቃል ምንድን ነው?", options: ["ጨለማ", "ቀን", "ሌሊት", "ፀሐይ"], answer: "ጨለማ" },
+                        { question: "'መኪና' የሚለው ቃል ብዙ ቁጥር ምንድን ነው?", options: ["መኪና", "መኪናዎች", "መኪናዬ", "መኪናዎቹ"], answer: "መኪናዎች" },
+                        { question: "የ'መምጣት' ያለፈ ጊዜ ግስ ለወንድ ምንድን ነው?", options: ["መጣች", "መጣ", "መጡ", "ይመጣል"], answer: "መጣ" },
+                        { question: "የ'ሩቅ' ተቃራኒ ቃል ምንድን ነው?", options: ["ቅርብ", "አጭር", "ትልቅ", "ትንሽ"], answer: "ቅርብ" },
+                        { question: "'በደስታ' የሚለው ቃል ምን አይነት ቃል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ተውሳክ" },
+                        { question: "የ'መስጠት' የወደፊት ጊዜ ግስ ለወንድ ምንድን ነው?", options: ["ሰጠ", "ይሰጣል", "ትሰጣለች", "ይሰጣሉ"], answer: "ይሰጣል" },
+                        { question: "የ'ጥቁር' ተቃራኒ ቃል ምንድን ነው?", options: ["ነጭ", "ቀይ", "ሰማያዊ", "አረንጓዴ"], answer: "ነጭ" },
+                        { question: "'አፍ' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የጋራ ስም" },
+                        { question: "የ'መብላት' ያለፈ ጊዜ ግስ ለወንድ ምንድን ነው?", options: ["በላች", "በላ", "በሉ", "ይበላል"], answer: "በላ" },
+                        { question: "የ'ሞቃት' ተቃራኒ ቃል ምንድን ነው?", options: ["ቀዝቃዛ", "ብርድ", "ትኩስ", "ሙቅ"], answer: "ቀዝቃዛ" },
+                        { question: "በአማርኛ ፊደላት ውስጥ የ'ሀ' ቤተሰብ ስንት ቅርጾች አሉት?", options: ["5", "6", "7", "8"], answer: "7" },
+                        { question: "የ'መሄድ' የወደፊት ጊዜ ግስ ለብዙ ቁጥር ምንድን ነው?", options: ["ሄደ", "ይሄዳሉ", "ሄዱ", "ትሄዳለች"], answer: "ይሄዳሉ" },
+                        { question: "የ'ትምህርት ቤት' ብዙ ቁጥር ምንድን ነው?", options: ["ትምህርት ቤት", "ትምህርት ቤቶች", "ትምህርት ቤቴ", "ትምህርት ቤቶቹ"], answer: "ትምህርት ቤቶች" },
+                        { question: "'በፍጥነት' የሚለው ቃል ምን አይነት ቃል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ተውሳክ" },
+                        { question: "የ'አበባ' ብዙ ቁጥር ምንድን ነው?", options: ["አበባ", "አበባዎች", "አበባዬ", "አበባዎቹ"], answer: "አበባዎች" },
+                        { question: "የ'መናገር' ያለፈ ጊዜ ግስ ለሴት ምንድን ነው?", options: ["ተናገረ", "ተናገረች", "ተናገሩ", "ትናገራለች"], answer: "ተናገረች" },
+                        { question: "የ'አዲስ' ተቃራኒ ቃል ምንድን ነው?", options: ["ጥንታዊ", "አሮጌ", "የድሮ", "አዲስ"], answer: "አሮጌ" },
+                        { question: "'መጽሐፍ' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የጋራ ስም" },
+                        { question: "የ'መቁጠር' ያለፈ ጊዜ ግስ ለወንድ ምንድን ነው?", options: ["ቆጠረች", "ቆጠረ", "ቆጠሩ", "ይቆጥራል"], answer: "ቆጠረ" },
+                        { question: "የ'ረዥም ዛፍ' የሚለው ሐረግ ውስጥ ስሙ ምንድን ነው?", options: ["ረዥም", "ዛፍ", "ነው", "ምንም"], answer: "ዛፍ" },
+                        { question: "'ምሽት' የሚለው ቃል ተቃራኒ ምንድን ነው?", options: ["ጠዋት", "ቀትር", "ሌሊት", "በኋላ"], answer: "ጠዋት" },
+                        { question: "የ'ፈጣን' ተቃራኒ ቃል ምንድን ነው?", options: ["ቀርፋፋ", "አጭር", "ትልቅ", "ሰፊ"], answer: "ቀርፋፋ" },
+                        { question: "'ብዕር' የሚለው ቃል ብዙ ቁጥር ምንድን ነው?", options: ["ብዕር", "ብዕሮች", "ብዕሬ", "ብዕሮቹ"], answer: "ብዕሮች" },
+                        { question: "የ'መግዛት' የወደፊት ጊዜ ግስ ለወንድ ምንድን ነው?", options: ["ገዛች", "ይገዛል", "ገዙ", "ይገዛሉ"], answer: "ይገዛል" },
+                        { question: "የቱ ቃል ነው መስተዋድድ: 'ብዕር', 'ላይ', 'ጥሩ', 'መሮጥ'?", options: ["ብዕር", "ላይ", "ጥሩ", "መሮጥ"], answer: "ላይ" },
+                        { question: "'ጠረጴዛ' የሚለው ቃል ብዙ ቁጥር ምንድን ነው?", options: ["ጠረጴዛ", "ጠረጴዛዎች", "ጠረጴዛዬ", "ጠረጴዛዎቹ"], answer: "ጠረጴዛዎች" },
+                        { question: "የ'ደስተኛ' ተቃራኒ ቃል ምንድን ነው?", options: ["ሀዘንተኛ", "ቁጡ", "የተረጋጋ", "አስገራሚ"], answer: "ሀዘንተኛ" },
+                        { question: "'ቤተሰብ' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "ምንም"], answer: "የጋራ ስም" },
+                        { question: "የ'መስራት' ያለፈ ጊዜ ግስ ለሴት ምንድን ነው?", options: ["ሰራ", "ሰራች", "ሰሩ", "ትሰራለች"], answer: "ሰራች" },
+                        { question: "የ'ጥሩ ልጅ' የሚለው ሐረግ ውስጥ ቅፅሉ ምንድን ነው?", options: ["ጥሩ", "ልጅ", "ነው", "ምንም"], answer: "ጥሩ" },
+                        { question: "'ከሰዓት በኋላ' የሚለው ቃል ተቃራኒ ምንድን ነው?", options: ["ጠዋት", "ምሽት", "ሌሊት", "ቀትር"], answer: "ጠዋት" }
+                    ]
+                },
+                {
+                    name: "የ 2ኛ ክፍል አማርኛ",
+                    id: "grade2_amharic",
+                    questions: [
+                        { question: "የአማርኛ ፊደላት 'ሀ' ቤተሰብ አራተኛ ቅርፅ ምንድን ነው?", options: ["ሃ", "ሄ", "ህ", "ሖ"], answer: "ሄ" },
+                        { question: "'እሱ ምግብ በላ' የሚለው ዓረፍተ ነገር ውስጥ ግሱ ያለፈ ጊዜ ነው ወይስ የአሁን ጊዜ?", options: ["ያለፈ ጊዜ", "የአሁን ጊዜ", "ወደፊት ጊዜ", "ምንም"], answer: "ያለፈ ጊዜ" },
+                        { question: "የ'አረንጓዴ' ተቃራኒ ቀለም ምንድን ነው?", options: ["ቀይ", "ሰማያዊ", "ቢጫ", "ምንም"], answer: "ምንም" },
+                        { question: "'ትልቅ ቤት' የሚለው ሐረግ ውስጥ 'ትልቅ' ምን አይነት ቃል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ቅፅል" },
+                        { question: "የ'አምስት' አሃዝ በአማርኛ ፊደላት እንዴት ይጻፋል?", options: ["፬", "፭", "፮", "፯"], answer: "፭" },
+                        { question: "የ'መብላት' ግስ ወደ 'እየበላ' ሲቀየር ምን አይነት ጊዜ ነው?", options: ["ያለፈ", "አሁን", "ወደፊት", "ምንም"], answer: "አሁን" },
+                        { question: "የ'መኪና' ብዙ ቁጥር ምንድን ነው?", options: ["መኪና", "መኪናዎች", "መኪናዬ", "መኪናዎቹ"], answer: "መኪናዎች" },
+                        { question: "'በፍጥነት ይሮጣል' የሚለው ሐረግ ውስጥ 'በፍጥነት' ምን አይነት ቃል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ተውሳክ" },
+                        { question: "የ'ውሃ' ምንጭ ምንድን ነው?", options: ["ዛፍ", "እሳት", "ወንዝ", "ምድር"], answer: "ወንዝ" },
+                        { question: "አንድ ዓረፍተ ነገር ሁልጊዜ በምን መጠናቀቅ አለበት?", options: ["ነጠላ ሰረዝ", "ጥያቄ ምልክት", "ሙሉ ሥርዓተ ነጥብ", "ምንም"], answer: "ሙሉ ሥርዓተ ነጥብ" },
+                        { question: "የ'መምጣት' ግስ ወደ 'ይመጣ' ሲቀየር ምን አይነት ጊዜ ነው?", options: ["ያለፈ", "አሁን", "ወደፊት", "ምንም"], answer: "አሁን" },
+                        { question: "የ'አጭር' ተቃራኒ ቃል ምንድን ነው?", options: ["ረዥም", "ሰፊ", "ትልቅ", "ትንሽ"], answer: "ረዥም" },
+                        { question: "'እነሱ ወደ ቤት ሄዱ' የሚለው ዓረፍተ ነገር ውስጥ ግሱ ምንድን ነው?", options: ["እነሱ", "ቤት", "ሄዱ", "ምንም"], answer: "ሄዱ" },
+                        { question: "የ'አበባ' ብዙ ቁጥር ምንድን ነው?", options: ["አበባ", "አበባዎች", "አበባዬ", "አበባዎቹ"], answer: "አበባዎች" },
+                        { question: "'እሷ በደንብ ትጽፋለች' የሚለው ሐረግ ውስጥ 'በደንብ' ምን አይነት ቃል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ተውሳክ" },
+                        { question: "የ'መጠጣት' ግስ ወደ 'ይጠጣል' ሲቀየር ምን አይነት ጊዜ ነው?", options: ["ያለፈ", "አሁን", "ወደፊት", "ምንም"], answer: "አሁን" },
+                        { question: "የ'ጨለማ' ተቃራኒ ቃል ምንድን ነው?", options: ["ብርሃን", "ሌሊት", "ጥቁር", "ቀን"], answer: "ብርሃን" },
+                        { question: "'መጽሐፍ' የሚለው ቃል ስም ነው ወይስ ግስ?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ስም" },
+                        { question: "የ'መዝፈን' ግስ ወደ 'እየዘመረ' ሲቀየር ምን አይነት ጊዜ ነው?", options: ["ያለፈ", "አሁን", "ወደፊት", "ምንም"], answer: "አሁን" },
+                        { question: "የ'ንጹህ' ተቃራኒ ቃል ምንድን ነው?", options: ["ቆሻሻ", "ጥሩ", "ትልቅ", "ትንሽ"], answer: "ቆሻሻ" },
+                        { question: "አንድ ጥያቄ በምን መጠናቀቅ አለበት?", options: ["ነጠላ ሰረዝ", "ጥያቄ ምልክት", "ሙሉ ሥርዓተ ነጥብ", "ምንም"], answer: "ጥያቄ ምልክት" },
+                        { question: "የ'መሮጥ' ግስ ወደ 'ይሮጣል' ሲቀየር ምን አይነት ጊዜ ነው?", options: ["ያለፈ", "አሁን", "ወደፊት", "ምንም"], answer: "አሁን" },
+                        { question: "የ'ቀይ አበባ' የሚለው ሐረግ ውስጥ 'ቀይ' ምን አይነት ቃል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ቅፅል" },
+                        { question: "'እኛ እንጫወታለን' የሚለው ግስ ወደ 'እየተጫወትን' ሲቀየር ምን አይነት ጊዜ ነው?", options: ["ያለፈ", "አሁን", "ወደፊት", "ምንም"], answer: "አሁን" },
+                        { question: "የ'ሙቅ' ተቃራኒ ቃል ምንድን ነው?", options: ["ቀዝቃዛ", "ብርድ", "ትኩስ", "ሞቃት"], answer: "ቀዝቃዛ" },
+                        { question: "የአማርኛ ፊደላት 'ለ' ቤተሰብ አምስተኛ ቅርፅ ምንድን ነው?", options: ["ላ", "ሊ", "ሉ", "ሌ"], answer: "ሌ" },
+                        { question: "የ'ማንበብ' ግስ ወደ 'ያነባል' ሲቀየር ምን አይነት ጊዜ ነው?", options: ["ያለፈ", "አሁን", "ወደፊት", "ምንም"], answer: "አሁን" },
+                        { question: "'ጠረጴዛ' የሚለው ቃል ብዙ ቁጥር ምንድን ነው?", options: ["ጠረጴዛ", "ጠረጴዛዎች", "ጠረጴዛዬ", "ጠረጴዛዎቹ"], answer: "ጠረጴዛዎች" },
+                        { question: "የ'መጻፍ' ግስ ወደ 'ትጽፋለች' ሲቀየር ምን አይነት ጊዜ ነው?", options: ["ያለፈ", "አሁን", "ወደፊት", "ምንም"], answer: "አሁን" },
+                        { question: "የ'ሩቅ' ተቃራኒ ቃል ምንድን ነው?", options: ["ቅርብ", "አጭር", "ትልቅ", "ትንሽ"], answer: "ቅርብ" },
+                        { question: "የ'መልካም' ተቃራኒ ቃል ምንድን ነው?", options: ["መጥፎ", "ጥሩ", "ቆንጆ", "አስቀያሚ"], answer: "መጥፎ" },
+                        { question: "የ'ብዕር' ብዙ ቁጥር ምንድን ነው?", options: ["ብዕር", "ብዕሮች", "ብዕሬ", "ብዕሮቹ"], answer: "ብዕሮች" },
+                        { question: "የ'መስጠት' ግስ ወደ 'ትሰጣለች' ሲቀየር ምን አይነት ጊዜ ነው?", options: ["ያለፈ", "አሁን", "ወደፊት", "ምንም"], answer: "አሁን" },
+                        { question: "'ጥሩ ልጅ' የሚለው ሐረግ ውስጥ 'ጥሩ' ምን አይነት ቃል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ቅፅል" },
+                        { question: "የ'መግዛት' ግስ ወደ 'ይገዛል' ሲቀየር ምን አይነት ጊዜ ነው?", options: ["ያለፈ", "አሁን", "ወደፊት", "ምንም"], answer: "አሁን" },
+                        { question: "የ'ቆሻሻ' ተቃራኒ ቃል ምንድን ነው?", options: ["ንጹህ", "ጥሩ", "መጥፎ", "ቆንጆ"], answer: "ንጹህ" },
+                        { question: "'ቤተሰብ' የሚለው ቃል ብዙ ቁጥር ምንድን ነው?", options: ["ቤተሰብ", "ቤተሰቦች", "ቤተሰቤ", "ቤተሰቦቹ"], answer: "ቤተሰቦች" },
+                        { question: "የ'መስራት' ግስ ወደ 'ይሰራል' ሲቀየር ምን አይነት ጊዜ ነው?", options: ["ያለፈ", "አሁን", "ወደፊት", "ምንም"], answer: "አሁን" },
+                        { question: "የ'ትልቅ ዛፍ' የሚለው ሐረግ ውስጥ 'ዛፍ' ምን አይነት ቃል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ስም" },
+                        { question: "የ'አዲስ' ተቃራኒ ቃል ምንድን ነው?", options: ["አሮጌ", "ጥንታዊ", "የድሮ", "አዲስ"], answer: "አሮጌ" },
+                        { question: "አንድ ታሪክ በምን ይጀምራል?", options: ["የመጨረሻ ዓረፍተ ነገር", "መግቢያ", "አጋማሽ", "ምንም"], answer: "መግቢያ" },
+                        { question: "የ'መቁጠር' ግስ ወደ 'ይቆጥራል' ሲቀየር ምን አይነት ጊዜ ነው?", options: ["ያለፈ", "አሁን", "ወደፊት", "ምንም"], answer: "አሁን" },
+                        { question: "የ'ፈጣን' ተቃራኒ ቃል ምንድን ነው?", options: ["ቀርፋፋ", "አጭር", "ትልቅ", "ሰፊ"], answer: "ቀርፋፋ" },
+                        { question: "'አፍ' የሚለው ቃል ስንት ፊደሎች አሉት?", options: ["1", "2", "3", "4"], answer: "2" },
+                        { question: "የ'እኔ' ተውላጠ ስም ለብዙ ቁጥር ሲቀየር ምንድን ነው?", options: ["እሱ", "እሷ", "እኛ", "አንተ"], answer: "እኛ" },
+                        { question: "የ'ሰዓት' ብዙ ቁጥር ምንድን ነው?", options: ["ሰዓት", "ሰዓቶች", "ሰዓቴ", "ሰዓቶቹ"], answer: "ሰዓቶች" },
+                        { question: "የ'ሀዘንተኛ' ተቃራኒ ቃል ምንድን ነው?", options: ["ደስተኛ", "ቁጡ", "አስገራሚ", "የተረጋጋ"], answer: "ደስተኛ" },
+                        { question: "የአማርኛ ፊደላት 'አ' ቤተሰብ የመጨረሻ ቅርፅ ምንድን ነው?", options: ["ኣ", "ኡ", "ኢ", "ኦ"], answer: "ኦ" },
+                        { question: "የ'ብርድ' ተቃራኒ ቃል ምንድን ነው?", options: ["ሙቀት", "ቀዝቃዛ", "ትኩስ", "ሞቃት"], answer: "ሙቀት" },
+                        { question: "የ'ቤት' ብዙ ቁጥር ምንድን ነው?", options: ["ቤት", "ቤቶች", "ቤቴ", "ቤቶቹ"], answer: "ቤቶች" }
+                    ]
+                },
+                {
+                    name: "የ 3ኛ ክፍል አማርኛ",
+                    id: "grade3_amharic",
+                    questions: [
+                        { question: "የአማርኛ ፊደል 'ሠ' በየትኛው ቤተሰብ ውስጥ ነው ያለው?", options: ["ሀ", "ለ", "መ", "ሠ"], answer: "ሠ" },
+                        { question: "'ልጁ እየበላ ነው' የሚለው ዓረፍተ ነገር ውስጥ ግሱ በምን ጊዜ ነው?", options: ["ያለፈ ጊዜ", "የአሁን ጊዜ", "ወደፊት ጊዜ", "የተለመደ ጊዜ"], answer: "የአሁን ጊዜ" },
+                        { question: "የ'ብሩህ' ተቃራኒ ቃል ምንድን ነው?", options: ["ጨለማ", "ቀን", "ሌሊት", "ጥቁር"], answer: "ጨለማ" },
+                        { question: "'ቆንጆ አበባ' የሚለው ሐረግ ውስጥ 'ቆንጆ' ምን አይነት ቃል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ቅፅል" },
+                        { question: "የ'ውሻ' የወንድ ፆታ ምንድን ነው?", options: ["ውሻ", "ሴት ውሻ", "ውሾች", "ውሻዬ"], answer: "ውሻ" },
+                        { question: "'እሱ በዝግታ ይናገራል' የሚለው ዓረፍተ ነገር ውስጥ ተውሳኩ ምንድን ነው?", options: ["እሱ", "በዝግታ", "ይናገራል", "ምንም"], answer: "በዝግታ" },
+                        { question: "የ'ማንበብ' ግስ ትዕዛዝ ቅርፅ (ለወንድ) ምንድን ነው?", options: ["አንብብ", "አንብቢ", "አንብቡ", "ያነባል"], answer: "አንብብ" },
+                        { question: "የ'መጽሐፍ' የጋራ ስም ብዙ ቁጥር ምንድን ነው?", options: ["መጽሐፍ", "መጽሐፍት", "መጽሐፎች", "መጽሐፉ"], answer: "መጽሐፎች" },
+                        { question: "በአማርኛ የብዙ ቁጥር ቅጥያ ምንድን ነው?", options: ["-ች", "-ዎች", "-ሁ", "-ዋል"], answer: "-ዎች" },
+                        { question: "'በደንብ' የሚለው ቃል ምን አይነት የንግግር ክፍል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ተውሳክ" },
+                        { question: "የ'መሄድ' ግስ የወደፊት ጊዜ (ለሴት) ምንድን ነው?", options: ["ትሄዳለች", "ይሄዳል", "ይሄዳሉ", "ሄደች"], answer: "ትሄዳለች" },
+                        { question: "የ'ረዥም' ተቃራኒ ቃል ምንድን ነው?", options: ["አጭር", "ትንሽ", "ትልቅ", "ወፍራም"], answer: "አጭር" },
+                        { question: "የ'ውሃ' ስም ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "የተረጋገጠ ስም"], answer: "የጋራ ስም" },
+                        { question: "የ'መብላት' ግስ ትዕዛዝ ቅርፅ (ለብዙ ቁጥር) ምንድን ነው?", options: ["በላ", "በሉ", "ብላ", "ይበሉ"], answer: "በሉ" },
+                        { question: "'ልጁ ፈጣን ነው' የሚለው ዓረፍተ ነገር ውስጥ ቅፅሉ ምንድን ነው?", options: ["ልጁ", "ፈጣን", "ነው", "ምንም"], answer: "ፈጣን" },
+                        { question: "የ'ማጽዳት' ያለፈ ጊዜ ግስ (ለወንድ) ምንድን ነው?", options: ["አጸዳች", "አጸዳ", "አጸዱ", "ያጸዳል"], answer: "አጸዳ" },
+                        { question: "የ'ቀዝቃዛ' ተቃራኒ ቃል ምንድን ነው?", options: ["ሙቅ", "ሞቃት", "ትኩስ", "ብርድ"], answer: "ሙቅ" },
+                        { question: "የ'አበባ' ስም ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "የተረጋገጠ ስም"], answer: "የጋራ ስም" },
+                        { question: "የ'መጻፍ' ግስ ትዕዛዝ ቅርፅ (ለሴት) ምንድን ነው?", options: ["ጻፍ", "ጻፊ", "ጻፉ", "ትጽፋለች"], answer: "ጻፊ" },
+                        { question: "የ'በጣም' የሚለው ቃል ምን አይነት የንግግር ክፍል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ተውሳክ" },
+                        { question: "'እኛ እንግሊዝኛ እንማራለን' የሚለው ዓረፍተ ነገር ውስጥ ግሱ ምንድን ነው?", options: ["እኛ", "እንግሊዝኛ", "እንማራለን", "ምንም"], answer: "እንማራለን" },
+                        { question: "የ'ሀዘን' ተቃራኒ ቃል ምንድን ነው?", options: ["ደስታ", "ቁጣ", "ፍርሃት", "ሰላም"], answer: "ደስታ" },
+                        { question: "የ'ገንዘብ' ስም ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "የተረጋገጠ ስም"], answer: "የጋራ ስም" },
+                        { question: "የ'መሮጥ' ግስ ትዕዛዝ ቅርፅ (ለብዙ ቁጥር) ምንድን ነው?", options: ["ሩጥ", "ሩጡ", "ርጪ", "ይሮጣሉ"], answer: "ሩጡ" },
+                        { question: "'አንድ መጽሐፍ' የሚለው ሐረግ ውስጥ ቁጥሩ ምንድን ነው?", options: ["አንድ", "መጽሐፍ", "ነው", "ምንም"], answer: "አንድ" },
+                        { question: "የ'መዝፈን' ያለፈ ጊዜ ግስ (ለብዙ ቁጥር) ምንድን ነው?", options: ["ዘመረ", "ዘመሩ", "ትዘምራለች", "ይዘምራሉ"], answer: "ዘመሩ" },
+                        { question: "የ'ጥሩ' ተቃራኒ ቃል ምንድን ነው?", options: ["መጥፎ", "ቆንጆ", "አስቀያሚ", "ደስተኛ"], answer: "መጥፎ" },
+                        { question: "የ'አባት' የፆታ ለውጥ (ሴት) ምንድን ነው?", options: ["ወንድም", "እህት", "እናት", "ልጅ"], answer: "እናት" },
+                        { question: "የ'መስጠት' ግስ ትዕዛዝ ቅርፅ (ለወንድ) ምንድን ነው?", options: ["ስጥ", "ስጪ", "ስጡ", "ይሰጣል"], answer: "ስጥ" },
+                        { question: "'ከላይ' የሚለው ቃል ምን አይነት የንግግር ክፍል ነው?", options: ["ስም", "ግስ", "ቅፅል", "መስተዋድድ"], answer: "መስተዋድድ" },
+                        { question: "የ'ብርሃን' ተቃራኒ ቃል ምንድን ነው?", options: ["ጨለማ", "ቀን", "ሌሊት", "ጥቁር"], answer: "ጨለማ" },
+                        { question: "የ'መግዛት' ግስ ትዕዛዝ ቅርፅ (ለሴት) ምንድን ነው?", options: ["ግዛ", "ግዢ", "ግዙ", "ትገዛለች"], answer: "ግዢ" },
+                        { question: "የ'ረዥም ጸጉር' የሚለው ሐረግ ውስጥ ቅፅሉ ምንድን ነው?", options: ["ረዥም", "ጸጉር", "ነው", "ምንም"], answer: "ረዥም" },
+                        { question: "የ'ውሻ' የብዙ ቁጥር ግስ ምንድን ነው?", options: ["ውሻ", "ውሻዎች", "ውሻዬ", "ውሾች"], answer: "ውሾች" },
+                        { question: "የ'አዲስ ቤት' የሚለው ሐረግ ውስጥ ስሙ ምንድን ነው?", options: ["አዲስ", "ቤት", "ነው", "ምንም"], answer: "ቤት" },
+                        { question: "የ'መቁጠር' ግስ ትዕዛዝ ቅርፅ (ለሴት) ምንድን ነው?", options: ["ቁጠር", "ቁጠሪ", "ቁጠሩ", "ትቆጥራለች"], answer: "ቁጠሪ" },
+                        { question: "የ'ቀዝቃዛ' ተቃራኒ ቃል ምንድን ነው?", options: ["ሙቀት", "ሞቃት", "ትኩስ", "ብርድ"], answer: "ሙቀት" },
+                        { question: "'አፍ' የሚለው ቃል ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "የተረጋገጠ ስም"], answer: "የጋራ ስም" },
+                        { question: "የ'መስራት' ግስ ትዕዛዝ ቅርፅ (ለብዙ ቁጥር) ምንድን ነው?", options: ["ስራ", "ስሩ", "ስሪ", "ይሰራሉ"], answer: "ስሩ" },
+                        { question: "'በደንብ' የሚለው ቃል ምን አይነት የንግግር ክፍል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ተውሳክ" },
+                        { question: "የ'ስም' የብዙ ቁጥር ምንድን ነው?", options: ["ስም", "ስሞች", "ስሜ", "ስሞቹ"], answer: "ስሞች" },
+                        { question: "የ'ውድ' ተቃራኒ ቃል ምንድን ነው?", options: ["ርካሽ", "ጥሩ", "ውድ", "ጣፋጭ"], answer: "ርካሽ" },
+                        { question: "የ'ማንበብ' ግስ ትዕዛዝ ቅርፅ (ለሴት) ምንድን ነው?", options: ["አንብብ", "አንብቢ", "አንብቡ", "ታነባለች"], answer: "አንብቢ" },
+                        { question: "'ከታች' የሚለው ቃል ምን አይነት የንግግር ክፍል ነው?", options: ["ስም", "ግስ", "ቅፅል", "መስተዋድድ"], answer: "መስተዋድድ" },
+                        { question: "የ'ቀላል' ተቃራኒ ቃል ምንድን ነው?", options: ["ከባድ", "ትንሽ", "ትልቅ", "ቀጭን"], answer: "ከባድ" },
+                        { question: "የ'ጊዜ' ስም ምን አይነት ስም ነው?", options: ["የተወሰነ ስም", "የጋራ ስም", "የግል ስም", "የተረጋገጠ ስም"], answer: "የጋራ ስም" },
+                        { question: "የ'መናገር' ግስ ትዕዛዝ ቅርፅ (ለወንድ) ምንድን ነው?", options: ["ተናገር", "ተናገሪ", "ተናገሩ", "ይናገራል"], answer: "ተናገር" },
+                        { question: "'እሱ ጠረጴዛ ላይ ነው' የሚለው ዓረፍተ ነገር ውስጥ መስተዋድዱ ምንድን ነው?", options: ["እሱ", "ጠረጴዛ", "ላይ", "ነው"], answer: "ላይ" },
+                        { question: "የ'ሩቅ' ተቃራኒ ቃል ምንድን ነው?", options: ["ቅርብ", "አጭር", "ትልቅ", "ትንሽ"], answer: "ቅርብ" },
+                        { question: "'ጥቁር' የሚለው ቃል ምን አይነት የንግግር ክፍል ነው?", options: ["ስም", "ግስ", "ቅፅል", "ተውሳክ"], answer: "ቅፅል" }
+                    ]
+                }
+            ];
+
+            // DOM elements
+            const levelListDiv = document.getElementById('level-list');
+            const quizSectionDiv = document.getElementById('quiz-section');
+            const backButton = document.getElementById('back-button');
+            const levelTitle = document.getElementById('level-title');
+            const questionNumberDisplay = document.getElementById('question-number');
+            const questionDisplay = document.getElementById('question-display');
+            const optionsContainer = document.getElementById('options-container');
+            const submitAnswerButton = document.getElementById('submit-answer');
+            const nextQuestionButton = document.getElementById('next-question');
+            const feedbackDisplay = document.getElementById('feedback-display');
+            const quizCompleteMessage = document.getElementById('quiz-complete-message');
+
+            let currentLevel = null;
+            let currentQuestionIndex = 0;
+            let selectedOption = null;
+
+            // Function to render the list of levels
+            function renderLevels() {
+                levelListDiv.innerHTML = ''; // Clear previous list
+                levels.forEach(level => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-item bg-blue-100 text-blue-800 p-4 rounded-lg cursor-pointer text-xl font-medium shadow-md hover:bg-blue-200';
+                    listItem.textContent = level.name;
+                    listItem.dataset.levelId = level.id; // Store ID for easy lookup
+                    listItem.addEventListener('click', () => showQuiz(level));
+                    levelListDiv.appendChild(listItem);
+                });
+            }
+
+            // Function to show the quiz section for a given level
+            function showQuiz(level, startIndex = 0) {
+                currentLevel = level;
+                currentQuestionIndex = startIndex;
+                levelListDiv.classList.add('hidden'); // Hide level list
+                quizSectionDiv.classList.remove('hidden'); // Show quiz section
+
+                // Reset quiz section state
+                quizCompleteMessage.classList.add('hidden');
+                submitAnswerButton.classList.remove('hidden');
+                nextQuestionButton.classList.add('hidden');
+                optionsContainer.classList.remove('pointer-events-none', 'opacity-50'); // Enable options interaction
+
+                levelTitle.textContent = level.name;
+                displayQuestion(); // Display the first question
+
+                // Save user's current level to Firestore ONLY if Firebase is initialized
+                if (firebaseInitialized) {
+                    saveUserProgress(userId, level.id, currentQuestionIndex);
+                }
+            }
+
+            // Function to display the current question and its options
+            function displayQuestion() {
+                if (currentLevel && currentQuestionIndex < currentLevel.questions.length) {
+                    const q = currentLevel.questions[currentQuestionIndex];
+                    questionNumberDisplay.textContent = `ጥያቄ ${currentQuestionIndex + 1} ከ ${currentLevel.questions.length}`;
+                    questionDisplay.textContent = q.question;
+
+                    // Clear previous options
+                    optionsContainer.innerHTML = '';
+                    selectedOption = null; // Reset selected option
+
+                    // Shuffle options before displaying
+                    const shuffledOptions = shuffleArray([...q.options]);
+
+                    // Create and append radio buttons for each option
+                    shuffledOptions.forEach((option, index) => {
+                        const optionDiv = document.createElement('label');
+                        optionDiv.className = 'option-item block text-gray-700 hover:bg-blue-50';
+                        optionDiv.innerHTML = `
+                            <input type="radio" name="quiz_option" value="${option}" class="form-radio h-5 w-5 text-blue-600">
+                            <span class="ml-3 text-lg">${option}</span>
+                        `;
+                        optionsContainer.appendChild(optionDiv);
+
+                        // Add event listener to each radio button to track selection
+                        optionDiv.querySelector('input[type="radio"]').addEventListener('change', (event) => {
+                            selectedOption = event.target.value;
+                            feedbackDisplay.textContent = ''; // Clear feedback when a new option is selected
+                            feedbackDisplay.className = 'text-lg mt-4 font-medium'; // Reset feedback style
+                        });
+                    });
+
+                    feedbackDisplay.textContent = ''; // Clear feedback
+                    feedbackDisplay.className = 'text-lg mt-4 font-medium'; // Reset feedback style
+                    submitAnswerButton.classList.remove('hidden'); // Ensure submit button is visible
+                    nextQuestionButton.classList.add('hidden'); // Ensure next button is hidden
+                    optionsContainer.classList.remove('pointer-events-none', 'opacity-50'); // Re-enable options
+                } else {
+                    // Quiz is complete
+                    quizCompleteMessage.classList.remove('hidden');
+                    questionNumberDisplay.textContent = '';
+                    questionDisplay.textContent = '';
+                    optionsContainer.innerHTML = ''; // Clear options
+                    submitAnswerButton.classList.add('hidden'); // Hide submit
+                    nextQuestionButton.classList.add('hidden'); // Hide next
+                }
+            }
+
+            // Function to handle answer submission
+            submitAnswerButton.addEventListener('click', () => {
+                if (!selectedOption) {
+                    showModal("እባክዎ መልስ ከማስገባትዎ በፊት መልስ ይምረጡ።");
+                    return;
+                }
+
+                if (currentLevel && currentQuestionIndex < currentLevel.questions.length) {
+                    const correctAnswer = currentLevel.questions[currentQuestionIndex].answer;
+                    // Normalize answers for comparison (case-insensitive)
+                    if (selectedOption.toLowerCase() === correctAnswer.toLowerCase()) {
+                        feedbackDisplay.textContent = "ትክክል ነው! በጣም ጥሩ!";
+                        feedbackDisplay.className = 'text-lg mt-4 font-medium text-green-600';
+                    } else {
+                        feedbackDisplay.textContent = `ትክክል አይደለም። ትክክለኛው መልስ "${correctAnswer}" ነው።`;
+                        feedbackDisplay.className = 'text-lg mt-4 font-medium text-red-600';
+                    }
+                    submitAnswerButton.classList.add('hidden'); // Hide submit
+                    nextQuestionButton.classList.remove('hidden'); // Show next
+                    optionsContainer.classList.add('pointer-events-none', 'opacity-50'); // Disable options after submission
+                }
+            });
+
+            // Function to move to the next question
+            nextQuestionButton.addEventListener('click', () => {
+                currentQuestionIndex++;
+                displayQuestion(); // Display the next question or quiz complete message
+
+                // Save progress after moving to next question ONLY if Firebase is initialized
+                if (firebaseInitialized && currentLevel) { // Check currentLevel to avoid saving if quiz is complete
+                    saveUserProgress(userId, currentLevel.id, currentQuestionIndex);
+                }
+            });
+
+            // Function to go back to the level list
+            backButton.addEventListener('click', () => {
+                quizSectionDiv.classList.add('hidden'); // Hide quiz section
+                levelListDiv.classList.remove('hidden'); // Show level list
+                quizCompleteMessage.classList.add('hidden'); // Hide quiz complete message
+                optionsContainer.classList.remove('pointer-events-none', 'opacity-50'); // Ensure options are re-enabled
+                currentLevel = null;
+                currentQuestionIndex = 0; // Reset index for next quiz
+            });
+
+            // Initial render of levels
+            renderLevels();
+        }
+    </script>
+</body>
+</html>

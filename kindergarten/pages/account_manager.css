@@ -1,0 +1,187 @@
+/* Import existing font from style.css for consistency */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600&display=swap');
+
+/* Define color variables if not already globally defined in style.css, or ensure they are consistent */
+:root {
+    --orange: #f9ba60;
+    --pink: #f2ff00; /* This seems to be a very bright yellow-green. Confirm if this is intended for 'pink' or adjust. */
+    --black: #1d1c1c;
+    --white: #fff;
+    --light-color: #666;
+    --box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.1);
+}
+
+/* General section styling for the account manager page */
+.account-manager-section {
+    min-height: 100vh; /* Ensure it takes full viewport height */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f4f8; /* Light background, consistent with other sections */
+    padding: 3rem 7%; /* Inherit padding from global section styles */
+    padding-top: 10rem; /* Adjust padding to clear fixed header */
+}
+
+.account-manager-section .heading {
+    margin-bottom: 4rem; /* Spacing below the main heading */
+    font-size: 4rem;
+    color: var(--black);
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: bolder;
+}
+
+.account-manager-section .heading span {
+    color: var(--orange);
+}
+
+/* Container for all account boxes */
+.account-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr)); /* Responsive grid for boxes */
+    gap: 3rem; /* Space between boxes */
+    max-width: 1200px; /* Max width for the content area */
+    width: 100%;
+    margin: 0 auto; /* Center the container */
+    padding: 2rem; /* Inner padding */
+}
+
+/* Styling for individual account information/form boxes */
+.account-box {
+    background: var(--white);
+    border-radius: .8rem;
+    box-shadow: var(--box-shadow);
+    padding: 3rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Distribute space in column */
+}
+
+.account-box h3 {
+    font-size: 2.5rem;
+    color: var(--black);
+    margin-bottom: 2rem;
+    text-transform: capitalize;
+}
+
+.account-box p {
+    font-size: 1.6rem;
+    color: var(--light-color);
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+}
+
+.account-box .inputBox {
+    margin-bottom: 1.5rem;
+}
+
+.account-box .box {
+    width: 100%;
+    padding: 1.2rem 1.5rem;
+    font-size: 1.6rem;
+    color: var(--black);
+    text-transform: none; /* Do not capitalize input text */
+    border: 0.1rem solid rgba(0,0,0,.1);
+    border-radius: .5rem;
+}
+
+.account-box .box:focus {
+    border-color: var(--orange); /* Highlight on focus */
+}
+
+.account-box .btn {
+    margin-top: 1.5rem;
+    display: inline-block; /* Ensure button behaves correctly */
+    padding: 1.2rem 3rem;
+    font-size: 1.7rem;
+    color: var(--white);
+    background: var(--orange);
+    border-radius: .5rem;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.2s linear;
+}
+
+.account-box .btn:hover {
+    background: var(--black); /* Example hover effect */
+}
+
+/* Specific styling for the delete account button */
+.account-box.delete-account .delete-btn {
+    background: #e74c3c; /* Red color for delete button */
+}
+
+.account-box.delete-account .delete-btn:hover {
+    background: #c0392b; /* Darker red on hover */
+}
+
+/* Message display for forms */
+.form-message {
+    margin-top: 1.5rem;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: #e74c3c; /* Default to error color */
+    text-transform: none; /* Do not capitalize messages */
+}
+
+.form-message.success {
+    color: #27ae60; /* Green for success messages */
+}
+
+.account-box .info-text {
+    font-size: 1.4rem;
+    color: var(--light-color);
+    margin-top: 1rem;
+}
+
+/* Profile Info box specific styles */
+.profile-info p {
+    text-align: left;
+    margin-bottom: 1rem;
+}
+.profile-info p strong {
+    color: var(--black);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .account-container {
+        grid-template-columns: 1fr; /* Stack boxes on smaller screens */
+        gap: 2rem;
+        padding: 1rem;
+    }
+
+    .account-manager-section .heading {
+        font-size: 3.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .account-box {
+        padding: 2.5rem;
+    }
+
+    .account-box h3 {
+        font-size: 2.2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .account-box p {
+        font-size: 1.5rem;
+    }
+
+    .account-box .btn {
+        padding: 1rem 2.5rem;
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 450px) {
+    .account-manager-section {
+        padding: 8rem 2rem 3rem; /* Adjust padding for very small screens */
+    }
+    .account-manager-section .heading {
+        font-size: 3rem;
+    }
+}
