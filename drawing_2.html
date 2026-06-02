@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids Drawing Fun!</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a playful look */
+        body {
+            font-family: "Inter", sans-serif; /* Using Inter font */
+            background-color: #f0f0f0; /* Light grey background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px; /* Add some padding around the content */
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 20px; /* Rounded corners for the container */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 90%; /* Max width for responsiveness */
+            width: 100%; /* Full width within max-width */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        canvas {
+            border: 2px solid #a0a0a0;
+            background-color: #ffffff;
+            cursor: crosshair;
+            touch-action: none; /* Prevent browser default touch actions */
+            border-radius: 10px; /* Rounded corners for the canvas */
+            width: 100%; /* Make canvas width responsive */
+            max-width: 800px; /* Max width for larger screens */
+            height: auto; /* Maintain aspect ratio */
+            aspect-ratio: 16 / 9; /* Typical screen aspect ratio for drawing area */
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+        }
+        .color-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%; /* Circular color selection */
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out;
+        }
+        .color-box:hover {
+            transform: scale(1.1);
+        }
+        .color-box.selected {
+            border-color: #3b82f6; /* Blue border for selected color */
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5); /* Glowing effect */
+        }
+        button {
+            padding: 12px 25px;
+            border-radius: 15px; /* Rounded buttons */
+            font-weight: bold;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        /* Specific button styles */
+        #clearButton {
+            background-color: #ef4444; /* Red for clear */
+            color: white;
+        }
+        #clearButton:hover {
+            background-color: #dc2626;
+        }
+        #eraserButton {
+            background-color: #6b7280; /* Gray for eraser */
+            color: white;
+        }
+        #eraserButton:hover {
+            background-color: #4b5563;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-blue-600 mb-4 text-center">🎨 Kids Drawing Fun! 🖍️</h1>
+        <canvas id="drawingCanvas"></canvas>
+        <div class="controls">
+            <!-- Color Palette -->
+            <div id="colorPalette" class="flex flex-wrap justify-center gap-3 p-2 bg-gray-100 rounded-lg shadow-inner">
+                <div class="color-box bg-black selected" data-color="black"></div>
+                <div class="color-box bg-red-500" data-color="red"></div>
+                <div class="color-box bg-blue-500" data-color="blue"></div>
+                <div class="color-box bg-green-500" data-color="green"></div>
+                <div class="color-box bg-yellow-500" data-color="yellow"></div>
+                <div class="color-box bg-purple-500" data-color="purple"></div>
+                <div class="color-box bg-pink-500" data-color="pink"></div>
+                <div class="color-box bg-orange-500" data-color="orange"></div>
+            </div>
+
+            <!-- Action Buttons -->
+            <button id="eraserButton" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-xl">
+                Eraser
+            </button>
+            <button id="clearButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl">
+                Clear All
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Get the canvas element and its 2D rendering context
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Get control elements
+        const colorPalette = document.getElementById('colorPalette');
+        const clearButton = document.getElementById('clearButton');
+        const eraserButton = document.getElementById('eraserButton');
+
+        // Drawing state variables
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let currentColor = 'black'; // Default drawing color
+        let currentTool = 'pen'; // 'pen' or 'eraser'
+        let lineWidth = 5; // Default line width for drawing
+        let eraserWidth = 20; // Width for the eraser
+
+        // Function to set canvas dimensions based on its display size
+        function resizeCanvas() {
+            // Get the current computed style of the canvas
+            const rect = canvas.getBoundingClientRect();
+            // Set the canvas drawing buffer size to match its display size
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            // When canvas is resized, its context is reset, so re-apply styles
+            ctx.lineCap = 'round'; // Round line ends
+            ctx.lineJoin = 'round'; // Round line joints
+            ctx.strokeStyle = currentColor; // Set current stroke color
+            ctx.lineWidth = (currentTool === 'pen') ? lineWidth : eraserWidth; // Set line width based on tool
+        }
+
+        // Call resizeCanvas initially and on window resize
+        window.addEventListener('load', resizeCanvas);
+        window.addEventListener('resize', resizeCanvas);
+
+        // Function to start drawing
+        function startDrawing(e) {
+            isDrawing = true;
+            // Get coordinates relative to the canvas
+            [lastX, lastY] = getCoordinates(e);
+            ctx.beginPath(); // Start a new path for drawing
+            ctx.moveTo(lastX, lastY); // Move to the initial drawing point
+            e.preventDefault(); // Prevent default touch behavior (e.g., scrolling)
+        }
+
+        // Function to draw lines
+        function draw(e) {
+            if (!isDrawing) return; // Only draw if drawing is enabled
+
+            const [x, y] = getCoordinates(e);
+
+            ctx.lineTo(x, y); // Draw a line to the current point
+            ctx.stroke(); // Apply the stroke
+
+            // Update last coordinates for continuous drawing
+            lastX = x;
+            lastY = y;
+            e.preventDefault(); // Prevent default touch behavior
+        }
+
+        // Function to stop drawing
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath(); // Close the current path
+        }
+
+        // Helper to get coordinates for both mouse and touch events
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+
+            if (e.touches && e.touches.length > 0) {
+                // For touch events
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                // For mouse events
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            // Calculate coordinates relative to the canvas
+            return [clientX - rect.left, clientY - rect.top];
+        }
+
+        // Event Listeners for drawing on canvas
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing); // Stop drawing if mouse leaves canvas
+
+        // Touch events for mobile drawing
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing); // Handle touch being cancelled
+
+        // Color Palette Click Handler
+        colorPalette.addEventListener('click', (e) => {
+            const target = e.target;
+            // Check if a color box was clicked
+            if (target.classList.contains('color-box')) {
+                // Remove 'selected' class from previously selected color
+                const currentSelected = document.querySelector('.color-box.selected');
+                if (currentSelected) {
+                    currentSelected.classList.remove('selected');
+                }
+
+                // Add 'selected' class to the clicked color
+                target.classList.add('selected');
+
+                // Set new color and tool to pen
+                currentColor = target.dataset.color;
+                ctx.strokeStyle = currentColor;
+                currentTool = 'pen';
+                ctx.lineWidth = lineWidth; // Reset line width to pen size
+            }
+        });
+
+        // Eraser Button Click Handler
+        eraserButton.addEventListener('click', () => {
+            // Remove 'selected' class from color boxes
+            const currentSelected = document.querySelector('.color-box.selected');
+            if (currentSelected) {
+                currentSelected.classList.remove('selected');
+            }
+
+            currentTool = 'eraser';
+            ctx.strokeStyle = '#ffffff'; // Eraser draws with white color
+            ctx.lineWidth = eraserWidth; // Set eraser line width
+        });
+
+        // Clear Button Click Handler
+        clearButton.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the entire canvas
+            // Optionally, reset to default drawing state after clearing
+            currentColor = 'black';
+            currentTool = 'pen';
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = lineWidth;
+
+            // Update selected color in UI to black
+            const currentSelected = document.querySelector('.color-box.selected');
+            if (currentSelected) {
+                currentSelected.classList.remove('selected');
+            }
+            document.querySelector('.color-box[data-color="black"]').classList.add('selected');
+        });
+
+        // Initial setup for line properties
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = currentColor;
+        ctx.lineWidth = lineWidth;
+    </script>
+</body>
+</html>

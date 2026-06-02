@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Educational Lessons</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for better aesthetics */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light gray background */
+            color: #334155; /* Dark gray text */
+        }
+        .heading span {
+            color: #ef4444; /* Red color for the 'education' span */
+        }
+        .box {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        .box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        /* Modal specific styles */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black overlay */
+            z-index: 1000; /* Ensure it's above other content */
+        }
+        .modal-content {
+            max-height: 80vh; /* Limit modal height */
+            overflow-y: auto; /* Enable scrolling if content overflows */
+        }
+        .lesson-link {
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .lesson-link:hover {
+            background-color: #fecaca; /* Light red on hover */
+            color: #b91c1c; /* Darker red text */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-10 px-4">
+
+    <!-- Education Section -->
+    <section class="education w-full max-w-6xl" id="education">
+        <h1 class="heading text-center text-5xl font-extrabold mb-12">
+            Lesson <span class="text-red-500">Part</span>
+        </h1>
+
+        <div class="box-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+
+            <!-- Music Lessons Box -->
+            <div class="box bg-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center"
+                data-subject-name="Music" data-video-src="videos/music_lesson.mp4">
+                <h3 class="text-2xl font-semibold mb-2">Music Lessons</h3>
+                <p class="text-gray-600 mb-4">Music lesson Videos for kindergarten up to 3rd grade</p>
+                <img src="https://placehold.co/150x150/e0f2f7/2196f3?text=Music" alt="Music education" class="w-32 h-32 object-cover rounded-lg">
+            </div>
+
+            <!-- Sports Lessons Box -->
+            <div class="box bg-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center"
+                data-subject-name="Sport" data-video-src="videos/sports_lesson.mp4">
+                <h3 class="text-2xl font-semibold mb-2">Sports Lessons</h3>
+                <p class="text-gray-600 mb-4">Sport lesson Videos for kindergarten up to 3rd grade</p>
+                <img src="https://placehold.co/150x150/ffe0b2/ff9800?text=Sports" alt="Sports education" class="w-32 h-32 object-cover rounded-lg">
+            </div>
+
+            <!-- Drama Lessons Box (Modified from Drawing) -->
+            <div class="box bg-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center"
+                data-subject-name="Drama" data-video-src="videos/drama_lesson.mp4">
+                <h3 class="text-2xl font-semibold mb-2">Drama Lessons</h3>
+                <p class="text-gray-600 mb-4">Drama lesson Videos for kindergarten up to 3rd grade</p>
+                <img src="https://placehold.co/150x150/d1c4e9/673ab7?text=Drama" alt="Drama education" class="w-32 h-32 object-cover rounded-lg">
+            </div>
+
+            <!-- Maths Lessons Box -->
+            <div class="box bg-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center"
+                data-subject-name="Maths" data-video-src="videos/maths_lesson.mp4">
+                <h3 class="text-2xl font-semibold mb-2">Maths Lessons</h3>
+                <p class="text-gray-600 mb-4">Mathematics lesson Videos for kindergarten up to 3rd grade</p>
+                <img src="https://placehold.co/150x150/c8e6c9/4caf50?text=Maths" alt="Maths education" class="w-32 h-32 object-cover rounded-lg">
+            </div>
+
+            <!-- Amharic Lessons Box -->
+            <div class="box bg-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center"
+                data-subject-name="Amharic" data-video-src="videos/amharic_lesson.mp4">
+                <h3 class="text-2xl font-semibold mb-2">Amharic Lessons</h3>
+                <p class="text-gray-600 mb-4">Amharic lesson Videos for kindergarten up to 3rd grade</p>
+                <img src="https://placehold.co/150x150/ffcdd2/f44336?text=Amharic" alt="Amharic education" class="w-32 h-32 object-cover rounded-lg">
+            </div>
+
+            <!-- English Lessons Box -->
+            <div class="box bg-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center"
+                data-subject-name="English" data-video-src="videos/english_lesson.mp4">
+                <h3 class="text-2xl font-semibold mb-2">English Lessons</h3>
+                <p class="text-gray-600 mb-4">English lesson Videos for kindergarten up to 3rd grade</p>
+                <img src="https://placehold.co/150x150/bbdefb/2196f3?text=English" alt="English education" class="w-32 h-32 object-cover rounded-lg">
+            </div>
+
+            <!-- Science Lessons Box -->
+            <div class="box bg-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center"
+                data-subject-name="Science" data-video-src="videos/science_lesson.mp4">
+                <h3 class="text-2xl font-semibold mb-2">Science Lessons</h3>
+                <p class="text-gray-600 mb-4">Science lesson Videos for kindergarten up to 3rd grade</p>
+                <img src="https://placehold.co/150x150/d2e1c8/8bc34a?text=Science" alt="Science education" class="w-32 h-32 object-cover rounded-lg">
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Modal for Lesson List -->
+    <div id="lessonModal" class="modal-overlay fixed inset-0 flex items-center justify-center p-4 hidden">
+        <div class="modal-content bg-white p-8 rounded-xl shadow-2xl relative w-full max-w-md">
+            <button id="closeModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl font-bold">&times;</button>
+            <h2 id="modalTitle" class="text-3xl font-bold text-center mb-6 text-gray-800"></h2>
+            <ul id="lessonList" class="space-y-3">
+                <!-- Lesson links will be populated here by JavaScript -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const boxes = document.querySelectorAll('.box');
+            const lessonModal = document.getElementById('lessonModal');
+            const closeModalBtn = document.getElementById('closeModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const lessonList = document.getElementById('lessonList');
+
+            // Define the grades for all subjects
+            const grades = [
+                "kindergarten",
+                "kg 1",
+                "kg 2", // Assuming "kg" was a typo and should be "kg 2"
+                "kg 3",
+                "1st grade",
+                "2nd grade",
+                "3rd grade"
+            ];
+
+            // Function to generate a placeholder YouTube URL
+            // You MUST replace these placeholder URLs with your actual 49 YouTube video links.
+            // A good way to do this is to create a mapping object:
+            // const youtubeVideoMap = {
+            //     "English-kindergarten": "YOUR_YOUTUBE_URL_HERE",
+            //     "English-kg 1": "YOUR_YOUTUBE_URL_HERE",
+            //     // ... and so on for all 49 videos
+            // };
+            // Then in getYouTubeUrl, you can do:
+            // return youtubeVideoMap[`${subject}-${grade}`] || `https://www.youtube.com/results?search_query=${subject}+for+${grade}+lesson`;
+            function getYouTubeUrl(subject, grade) {
+                // IMPORTANT: Replace this with your actual YouTube video URLs!
+                // For demonstration, we'll use a YouTube search query.
+                const formattedSubject = encodeURIComponent(subject.toLowerCase());
+                const formattedGrade = encodeURIComponent(grade.toLowerCase().replace(/\s/g, '+'));
+                return `https://www.youtube.com/results?search_query=${formattedSubject}+for+${formattedGrade}+lesson`;
+            }
+
+            // Add click event listener to each education box
+            boxes.forEach(box => {
+                box.addEventListener('click', () => {
+                    const subjectName = box.dataset.subjectName; // Get subject name from data attribute
+                    modalTitle.textContent = `${subjectName} Lessons`; // Set modal title
+                    lessonList.innerHTML = ''; // Clear previous lesson list
+
+                    // Populate the lesson list for the clicked subject
+                    grades.forEach(grade => {
+                        const listItem = document.createElement('li');
+                        const lessonText = `${subjectName} for ${grade}`;
+                        const youtubeLink = getYouTubeUrl(subjectName, grade);
+
+                        listItem.innerHTML = `
+                            <a href="${youtubeLink}" target="_blank" rel="noopener noreferrer"
+                               class="lesson-link block p-3 bg-gray-100 rounded-md text-gray-700 font-medium text-lg hover:bg-red-100 hover:text-red-700 transition duration-200 ease-in-out">
+                                ${lessonText}
+                            </a>
+                        `;
+                        lessonList.appendChild(listItem);
+                    });
+
+                    lessonModal.classList.remove('hidden'); // Show the modal
+                });
+            });
+
+            // Close modal functionality
+            closeModalBtn.addEventListener('click', () => {
+                lessonModal.classList.add('hidden');
+            });
+
+            // Close modal if clicked outside of it
+            lessonModal.addEventListener('click', (event) => {
+                if (event.target === lessonModal) {
+                    lessonModal.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

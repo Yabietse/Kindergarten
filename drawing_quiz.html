@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>የስዕል ትምህርት ደረጃዎች ጥያቄና መልስ</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a better look and feel */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Ensure it takes full viewport height */
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        .list-item, .button {
+            transition: all 0.2s ease-in-out; /* Smooth transitions for hover effects */
+        }
+        .list-item:hover {
+            transform: translateY(-3px); /* Slight lift on hover */
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+        /* Custom modal for alerts */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e0; /* Light gray border */
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            background-color: #f8fafc; /* Very light blue-gray */
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+            text-align: left;
+        }
+        .option-item:hover {
+            background-color: #e2e8f0; /* Slightly darker on hover */
+            border-color: #93c5fd; /* Blue border on hover */
+        }
+        .option-item input[type="radio"] {
+            margin-right: 1rem;
+            cursor: pointer;
+            accent-color: #3b82f6; /* Blue accent for radio button */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">የስዕል ትምህርት ደረጃዎች</h1>
+
+        <!-- Level List Section -->
+        <div id="level-list" class="space-y-4">
+            <!-- List items will be dynamically inserted here by JavaScript -->
+        </div>
+
+        <!-- Quiz Section (initially hidden) -->
+        <div id="quiz-section" class="hidden text-left">
+            <button id="back-button" class="button bg-gray-200 text-gray-700 px-4 py-2 rounded-lg mb-6 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+                ← ወደ ደረጃዎች ተመለስ
+            </button>
+            <p id="level-title" class="text-2xl font-semibold text-blue-700 mb-6"></p>
+            <p id="question-number" class="text-lg text-gray-600 mb-2"></p>
+            <p id="question-display" class="text-xl text-gray-800 mb-6"></p>
+
+            <!-- Options container for multiple choice -->
+            <div id="options-container" class="space-y-3 mb-4">
+                <!-- Multiple choice options will be inserted here by JavaScript -->
+            </div>
+
+            <button id="submit-answer" class="button bg-blue-600 text-white px-6 py-3 rounded-lg w-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                መልስ አስገባ
+            </button>
+            <button id="next-question" class="button bg-green-500 text-white px-6 py-3 rounded-lg w-full mt-4 hidden hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">
+                ቀጣይ ጥያቄ
+            </button>
+            <p id="feedback-display" class="text-lg mt-4 font-medium"></p>
+            <p id="quiz-complete-message" class="text-2xl text-green-700 font-bold mt-8 hidden">
+                ጥያቄዎቹ ተጠናቀዋል! በጣም ጥሩ!
+            </p>
+        </div>
+    </div>
+
+    <!-- Custom Modal for Messages -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="modal-message" class="text-lg text-gray-800"></p>
+            <button id="modal-ok-button" class="button bg-blue-600 text-white px-4 py-2 rounded-lg mt-4 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">እሺ</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration and initialization (MANDATORY in Canvas, optional for local run without persistence)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use a dummy for local execution
+        const firebaseConfigRaw = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        let firebaseConfig = {};
+        let firebaseEnabled = false;
+
+        // Attempt to parse firebaseConfig. If it's an empty object, Firebase will not be initialized.
+        try {
+            firebaseConfig = JSON.parse(firebaseConfigRaw);
+            // Check if the parsed config actually has keys (meaning it's not just an empty object from Canvas default)
+            if (Object.keys(firebaseConfig).length > 0) {
+                firebaseEnabled = true;
+            } else {
+                console.warn("No Firebase configuration provided or config is empty. Persistence will be disabled.");
+            }
+        } catch (e) {
+            console.error("Error parsing Firebase config:", e);
+            console.warn("Firebase will be disabled due to config error. Persistence will not work.");
+        }
+
+        let app, db, auth, userId;
+        let firebaseInitialized = false; // Flag to track successful Firebase initialization
+
+        // Function to show custom modal
+        function showModal(message) {
+            const modal = document.getElementById('myModal');
+            const modalMessage = document.getElementById('modal-message');
+            modalMessage.textContent = message;
+            modal.style.display = 'flex'; // Use flex to center
+        }
+
+        // Helper function to shuffle an array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Firestore: Save user's last selected level and question index
+        async function saveUserProgress(uid, levelId, questionIndex) {
+            if (!firebaseInitialized || !db) { // Check firebaseInitialized
+                console.warn("Firebase is not initialized. Progress will not be saved.");
+                return;
+            }
+            const userDocRef = doc(db, `artifacts/${appId}/users/${uid}/progress`, 'lastQuizState');
+            try {
+                await setDoc(userDocRef, {
+                    lastLevelId: levelId,
+                    lastQuestionIndex: questionIndex
+                }, { merge: true });
+                console.log(`User ${uid} progress saved: Level ${levelId}, Question ${questionIndex}`);
+            } catch (e) {
+                console.error("Error saving document: ", e);
+                showModal("ሂደትን ማስቀመጥ አልተቻለም፡፡ እባክዎ የበይነመረብ ግንኙነትዎን ያረጋግጡ።");
+            }
+        }
+
+        // Firestore: Load user's last selected level and question index and resume
+        async function loadUserProgress(uid) {
+            if (!firebaseInitialized || !db) { // Check firebaseInitialized
+                console.warn("Firebase is not initialized. Progress will not be loaded.");
+                return;
+            }
+            const userDocRef = doc(db, `artifacts/${appId}/users/${uid}/progress`, 'lastQuizState');
+            try {
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const lastLevelId = data.lastLevelId;
+                    const lastQuestionIndex = data.lastQuestionIndex || 0; // Default to 0 if not set
+
+                    const lastLevel = levels.find(level => level.id === lastLevelId);
+                    if (lastLevel) {
+                        // Check if the saved index is within bounds of the current questions for that level
+                        const effectiveIndex = Math.min(lastQuestionIndex, lastLevel.questions.length);
+                        if (effectiveIndex < lastLevel.questions.length) {
+                            showModal(`እንኳን ደህና መጡ! የ${lastLevel.name} ጥያቄ ${effectiveIndex + 1} ከቀጠሉበት ይቀጥሉ።`);
+                            showQuiz(lastLevel, effectiveIndex);
+                        } else {
+                            // If saved index is past the end, start at beginning of that level
+                            showModal(`እንኳን ደህና መጡ! የ${lastLevel.name} ጥያቄዎችን አጠናቅቀዋል። እንደገና እንጀምር።`);
+                            showQuiz(lastLevel, 0);
+                        }
+                        console.log(`User ${uid} last quiz state loaded: Level ${lastLevelId}, Question ${effectiveIndex}`);
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading document: ", e);
+                showModal("የቀደመውን ሂደት መጫን አልተቻለም።");
+            }
+        }
+
+
+        // Get modal elements
+        const modal = document.getElementById('myModal');
+        const closeButton = document.querySelector('.close-button');
+        const modalOkButton = document.getElementById('modal-ok-button');
+
+        // Close modal when close button is clicked
+        closeButton.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when OK button is clicked
+        modalOkButton.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (firebaseEnabled) {
+                try {
+                    // Initialize Firebase
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    // Sign in anonymously or with custom token (MANDATORY for persistence)
+                    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    // Get the user ID after authentication
+                    userId = auth.currentUser?.uid || crypto.randomUUID();
+                    console.log("Firebase initialized. User ID:", userId);
+                    firebaseInitialized = true; // Set flag to true on success
+
+                } catch (error) {
+                    console.error("Error initializing Firebase services:", error);
+                    showModal("የFirebase አገልግሎቶችን ማስጀመር አልተሳካም። መተግበሪያው ያለ ሂደት ማስቀመጥ ይሰራል። ቋሚነትን ማንቃት ከፈለጉ፣ የFirebase ፕሮጀክትዎ በትክክል መዋቀሩን ያረጋግጡ።");
+                    firebaseInitialized = false; // Ensure flag is false on error
+                }
+            } else {
+                console.log("Firebase is not enabled (no configuration found). The app will run without saving/loading progress.");
+            }
+
+            // Always initialize the app logic, regardless of Firebase status
+            initApp();
+
+            // Load user progress ONLY if Firebase was successfully initialized
+            if (firebaseInitialized) {
+                loadUserProgress(userId);
+            }
+        });
+
+        function initApp() {
+            // Data structure for levels and questions
+            const levels = [
+                {
+                    name: "የመዋዕለ ሕፃናት ስዕል",
+                    id: "kindergarten_drawing",
+                    questions: [
+                        { question: "ምን አይነት ቀለም ነው ሣርን ለመሳል የምንጠቀመው?", options: ["ቀይ", "ሰማያዊ", "አረንጓዴ", "ቢጫ"], answer: "አረንጓዴ" },
+                        { question: "ክብ ለመሳል ምን አይነት ቅርፅ እንጠቀማለን?", options: ["ካሬ", "ትሪያንግል", "ክበብ", "አራት ማዕዘን"], answer: "ክበብ" },
+                        { question: "የፀሐይን ቀለም ለመሳል ምን አይነት ቀለም እንጠቀማለን?", options: ["ሰማያዊ", "አረንጓዴ", "ቢጫ", "ጥቁር"], answer: "ቢጫ" },
+                        { question: "ሰውን ለመሳል መጀመሪያ ምን እንሳላለን?", options: ["እግር", "ራስ", "እጅ", "አፍ"], answer: "ራስ" },
+                        { question: "አምስት ኮከቦችን ለመሳል ስንት ጫፎች ይኖሩታል?", options: ["3", "4", "5", "6"], answer: "5" },
+                        { question: "የዝናብ ደመናን ለመሳል ምን አይነት ቀለም እንጠቀማለን?", options: ["ቀይ", "ቢጫ", "ግራጫ", "ሮዝ"], answer: "ግራጫ" },
+                        { question: "እርሳስ ለምን ይጠቅማል?", options: ["ለመሳል", "ለመብላት", "ለመተኛት", "ለመሮጥ"], answer: "ለመሳል" },
+                        { question: "ቀስተ ደመና ስንት ቀለሞች አሉት?", options: ["5", "6", "7", "8"], answer: "7" },
+                        { question: "የትኛው መሳሪያ ነው ቀለም ለመቀባት የሚያገለግለው?", options: ["እርሳስ", "ብሩሽ", "መቀስ", "ገዥ"], answer: "ብሩሽ" },
+                        { question: "በወረቀት ላይ ለመሳል ምን አይነት ወረቀት እንጠቀማለን?", options: ["ጋዜጣ", "መጽሐፍ", "መደበኛ ወረቀት", "ፕላስቲክ"], answer: "መደበኛ ወረቀት" }
+                    ]
+                },
+                {
+                    name: "የ KG 1 ስዕል",
+                    id: "kg1_drawing",
+                    questions: [
+                        { question: "ዋና ቀለሞች የትኞቹ ናቸው?", options: ["ቢጫ፣ ቀይ፣ አረንጓዴ", "ሰማያዊ፣ ቀይ፣ ቢጫ", "ጥቁር፣ ነጭ፣ ግራጫ", "ሮዝ፣ ብርቱካናማ፣ ወይንጠጃማ"], answer: "ሰማያዊ፣ ቀይ፣ ቢጫ" },
+                        { question: "ሁለት ዋና ቀለሞች ሲቀላቀሉ ምን አይነት ቀለም ይፈጠራል?", options: ["ዋና ቀለም", "ሁለተኛ ቀለም", "ሶስተኛ ቀለም", "ምንም"], answer: "ሁለተኛ ቀለም" },
+                        { question: "ቀይ እና ቢጫ ሲቀላቀሉ ምን አይነት ቀለም ይፈጠራል?", options: ["አረንጓዴ", "ብርቱካናማ", "ሐምራዊ", "ጥቁር"], answer: "ብርቱካናማ" },
+                        { question: "ትሪያንግል ስንት ጎኖች አሉት?", options: ["2", "3", "4", "5"], answer: "3" },
+                        { question: "ከሚከተሉት ውስጥ የመሬት ገጽታን ለመሳል የሚያገለግለው የትኛው ነው?", options: ["ፖርተርይት", "ላንድስኬፕ", "አብስትራክት", "ስቲል ላይፍ"], answer: "ላንድስኬፕ" },
+                        { question: "የውሃ ቀለሞች ከምን ጋር ነው የሚቀላቀሉት?", options: ["ዘይት", "ውሃ", "ወተት", "አልኮል"], answer: "ውሃ" },
+                        { question: "አንድን ነገር ብርሃን እና ጥላ ለማሳየት ምን አይነት ዘዴ እንጠቀማለን?", options: ["መስመሮች", "ቅርጾች", "ሼዲንግ", "ነጥቦች"], answer: "ሼዲንግ" },
+                        { question: "አንድን ነገር ከብዙ አቅጣጫ ለመሳል ምን አይነት እይታ እንጠቀማለን?", options: ["የፊት እይታ", "የጎን እይታ", "ፐርስፔክቲቭ", "ምንም"], answer: "ፐርስፔክቲቭ" },
+                        { question: "ታዋቂውን 'ሞና ሊዛ' ማን የሳለው?", options: ["ቫን ጎግ", "ፒካሶ", "ሊዮናርዶ ዳ ቪንቺ", "ሬምብራንት"], answer: "ሊዮናርዶ ዳ ቪንቺ" },
+                        { question: "የ'ኮላዥ' ጥበብ ምንድን ነው?", options: ["በቀለም መሳል", "በእርሳስ መሳል", "የተለያዩ ቁሳቁሶችን በማጣበቅ ምስል መፍጠር", "በዲጂታል መሳል"], answer: "የተለያዩ ቁሳቁሶችን በማጣበቅ ምስል መፍጠር" }
+                    ]
+                },
+                {
+                    name: "የ KG 2 ስዕል",
+                    id: "kg2_drawing",
+                    questions: [
+                        { question: "ከሚከተሉት ውስጥ የሙቀት ቀለሞች የትኞቹ ናቸው?", options: ["ሰማያዊ፣ አረንጓዴ", "ቀይ፣ ቢጫ፣ ብርቱካናማ", "ጥቁር፣ ነጭ", "ሐምራዊ፣ ሰማያዊ"], answer: "ቀይ፣ ቢጫ፣ ብርቱካናማ" },
+                        { question: "የስዕል ጥበብ 'አብስትራክት' ሲባል ምን ማለት ነው?", options: ["እውነታን በቀጥታ መሳል", "በማይጨበጡ ቅርጾች እና ቀለሞች መሳል", "የሰው ምስል መሳል", "የመሬት ገጽታ መሳል"], answer: "በማይጨበጡ ቅርጾች እና ቀለሞች መሳል" },
+                        { question: "አንድን ነገር ትልቅ ወይም ትንሽ ለማሳየት ምን እንጠቀማለን?", options: ["ቀለም", "መስመር", "ስኬል", "ጥላ"], answer: "ስኬል" },
+                        { question: "ታዋቂው 'ስታሪ ናይት' ስዕል የማን ነው?", options: ["ፒካሶ", "ቫን ጎግ", "ሞኔት", "ዳሊ"], answer: "ቫን ጎግ" },
+                        { question: "የ'ፖይንትሊዝም' ስዕል ዘዴ ምንን ይጠቀማል?", options: ["ትላልቅ ጭረቶች", "ትናንሽ ነጥቦች", "ረዥም መስመሮች", "ትላልቅ ቅርጾች"], answer: "ትናንሽ ነጥቦች" },
+                        { question: "ከሚከተሉት ውስጥ 'ስቲል ላይፍ' ስዕል የሚያገለግለው የትኛው ነው?", options: ["የሰው ምስል", "የመሬት ገጽታ", "የማይንቀሳቀሱ ቁሳቁሶች", "የእንስሳት ምስል"], answer: "የማይንቀሳቀሱ ቁሳቁሶች" },
+                        { question: "አንድን ነገር 'ውፍረት' ለማሳየት ምን እንጠቀማለን?", options: ["ቀለም", "ብርሃን", "ጥላ", "ቅርፅ"], answer: "ጥላ" },
+                        { question: "የስዕል ስራን በብዛት ለመስራት ምን አይነት ቁሳቁስ እንጠቀማለን?", options: ["ብዕር", "እርሳስ", "ቻርኮል", "ሁሉንም"], answer: "ሁሉንም" },
+                        { question: "የ'ሬኔሳንስ' የጥበብ ዘመን መቼ ነበር?", options: ["10ኛ-12ኛ ክፍለ ዘመን", "14ኛ-16ኛ ክፍለ ዘመን", "18ኛ-19ኛ ክፍለ ዘመን", "20ኛ ክፍለ ዘመን"], answer: "14ኛ-16ኛ ክፍለ ዘመን" },
+                        { question: "በስዕል ውስጥ 'ባላንስ' ምን ማለት ነው?", options: ["ቀለም ማቀላቀል", "መስመሮችን መሳል", "ምስሉ ላይ ያሉትን ነገሮች ማመጣጠን", "ጥላ መስጠት"], answer: "ምስሉ ላይ ያሉትን ነገሮች ማመጣጠን" }
+                    ]
+                },
+                {
+                    name: "የ KG 3 ስዕል",
+                    id: "kg3_drawing",
+                    questions: [
+                        { question: "የ'ሞኖክሮማቲክ' የቀለም ቅንጅት ምንን ይጠቀማል?", options: ["ብዙ ቀለሞችን", "አንድ ቀለም ብቻ በተለያዩ ድምፆች", "የተቃራኒ ቀለሞችን", "የዋና ቀለሞችን"], answer: "አንድ ቀለም ብቻ በተለያዩ ድምፆች" },
+                        { question: "በስዕል ውስጥ 'ቴክስቸር' ምንን ያመለክታል?", options: ["የገጽታ ስሜት", "የቀለም አይነት", "የመስመር አይነት", "የቅርፅ አይነት"], answer: "የገጽታ ስሜት" },
+                        { question: "የ'ቫኒሺንግ ፖይንት' በፐርስፔክቲቭ ስዕል ውስጥ ምን ሚና አለው?", options: ["የስዕሉ ማዕከል", "የሩቅ ቦታን የሚያሳይ ነጥብ", "የብርሃን ምንጭ", "የጥላ መጀመሪያ"], answer: "የሩቅ ቦታን የሚያሳይ ነጥብ" },
+                        { question: "ታዋቂው 'ዘ ጩኸት' ስዕል የማን ነው?", options: ["ፒካሶ", "ሙንክ", "ፍሪዳ ካህሎ", "ሬምብራንት"], answer: "ሙንክ" },
+                        { question: "የ'ኪዩቢዝም' የስዕል ዘውግ ዋና ባህሪ ምንድን ነው?", options: ["እውነታን በቀጥታ መሳል", "ጂኦሜትሪክ ቅርጾችን መጠቀም", "ብሩህ ቀለሞችን መጠቀም", "ረቂቅ ሀሳቦችን መሳል"], answer: "ጂኦሜትሪክ ቅርጾችን መጠቀም" },
+                        { question: "የስዕል 'ኮምፖዚሽን' ምንን ይገልጻል?", options: ["የቀለም ቅንጅት", "የመስመሮች ጥራት", "የምስሉ ነገሮች አደረጃጀት", "የብሩሽ አጠቃቀም"], answer: "የምስሉ ነገሮች አደረጃጀት" },
+                        { question: "አንድን ነገር 'ጥልቀት' ለማሳየት ምን እንጠቀማለን?", options: ["ቀለም", "መስመር", "ፐርስፔክቲቭ", "ጥላ ብቻ"], answer: "ፐርስፔክቲቭ" },
+                        { question: "ከሚከተሉት ውስጥ 'ድራውኢንግ ቦርድ' የሚያገለግለው ለምንድን ነው?", options: ["ቀለም ለመቀባት", "ወረቀትን ለመያዝ", "ብሩሽ ለማጽዳት", "ቀለም ለማቀላቀል"], answer: "ወረቀትን ለመያዝ" },
+                        { question: "የ'ኢምፕረሽኒዝም' የጥበብ ዘመን ዋና ባህሪ ምንድን ነው?", options: ["ዝርዝር ስዕሎች", "የብርሃን እና የከባቢ አየር ለውጦችን መያዝ", "የፖለቲካ መልዕክቶች", "ጂኦሜትሪክ ቅርጾች"], answer: "የብርሃን እና የከባቢ አየር ለውጦችን መያዝ" },
+                        { question: "በስዕል ውስጥ 'ሪትም' ምንን ያመለክታል?", options: ["የቀለሞች ድግግሞሽ", "የመስመሮች ፍጥነት", "የምስሉን ፍሰት እና እንቅስቃሴ", "የቅርጾች መጠን"], answer: "የምስሉን ፍሰት እና እንቅስቃሴ" }
+                    ]
+                },
+                {
+                    name: "የ 1ኛ ክፍል ስዕል",
+                    id: "grade1_drawing",
+                    questions: [
+                        { question: "የ'ሁለተኛ ቀለሞች' የትኞቹ ናቸው?", options: ["ቀይ፣ ቢጫ፣ ሰማያዊ", "አረንጓዴ፣ ብርቱካናማ፣ ሐምራዊ", "ጥቁር፣ ነጭ", "ቀስተ ደመና ቀለሞች"], answer: "አረንጓዴ፣ ብርቱካናማ፣ ሐምራዊ" },
+                        { question: "ሰማያዊ እና ቀይ ሲቀላቀሉ ምን አይነት ቀለም ይፈጠራል?", options: ["አረንጓዴ", "ብርቱካናማ", "ሐምራዊ", "ቢጫ"], answer: "ሐምራዊ" },
+                        { question: "የስዕል ቴክኒክ 'ሃቺንግ' ምንን ይጠቀማል?", options: ["ነጥቦችን", "አጭር መስመሮችን", "ረዥም መስመሮችን", "የተቀላቀሉ ቀለሞችን"], answer: "አጭር መስመሮችን" },
+                        { question: "አንድን ነገር 'እንቅስቃሴ' ለማሳየት ምን እንጠቀማለን?", options: ["የማይንቀሳቀስ ዳራ", "የተንቀሳቃሽ መስመሮች", "ብሩህ ቀለሞች", "ጥላ"], answer: "የተንቀሳቃሽ መስመሮች" },
+                        { question: "የ'ፖርተርይት' ስዕል ምንን ያሳያል?", options: ["የመሬት ገጽታ", "የማይንቀሳቀሱ ቁሳቁሶች", "የሰው ምስል", "የእንስሳት ምስል"], answer: "የሰው ምስል" },
+                        { question: "የስዕል መሳሪያ 'ቻርኮል' ከምን ይሰራል?", options: ["ከእንጨት", "ከድንጋይ", "ከብረት", "ከፕላስቲክ"], answer: "ከእንጨት" },
+                        { question: "በስዕል ውስጥ 'ኔጌቲቭ ስፔስ' ምን ማለት ነው?", options: ["የምስሉ ዋናው ነገር", "በዋናው ነገር ዙሪያ ያለው ባዶ ቦታ", "ብሩህ ቀለም", "ጥቁር ቀለም"], answer: "በዋናው ነገር ዙሪያ ያለው ባዶ ቦታ" },
+                        { question: "የ'ፉቱሪዝም' የጥበብ ዘውግ ዋና ባህሪ ምንድን ነው?", options: ["ወደፊት ማየት", "የእንቅስቃሴ እና ፍጥነት ማሳየት", "የድሮ ታሪክን መሳል", "የተረጋጋ ምስሎች"], answer: "የእንቅስቃሴ እና ፍጥነት ማሳየት" },
+                        { question: "በስዕል ውስጥ 'ዩኒቲ' ምንን ይገልጻል?", options: ["የተለያዩ ቀለሞችን መጠቀም", "የሁሉም ክፍሎች አንድ ላይ መስራት", "የብርሃን እና የጥላ አጠቃቀም", "የመስመሮች አደረጃጀት"], answer: "የሁሉም ክፍሎች አንድ ላይ መስራት" },
+                        { question: "የትኛው የስዕል ዘውግ ነው 'ሱሪያሊዝም'?", options: ["እውነታን በቀጥታ የሚያሳይ", "ሕልሞችን እና ንቃተ ህሊናን የሚያሳይ", "ጂኦሜትሪክ ቅርጾችን የሚጠቀም", "ጥቁር እና ነጭ ብቻ የሚጠቀም"], answer: "ሕልሞችን እና ንቃተ ህሊናን የሚያሳይ" }
+                    ]
+                },
+                {
+                    name: "የ 2ኛ ክፍል ስዕል",
+                    id: "grade2_drawing",
+                    questions: [
+                        { question: "የ'ትራንሲሽናል' ቀለሞች የትኞቹ ናቸው?", options: ["ዋና ቀለሞች", "ሁለተኛ ቀለሞች", "ሶስተኛ ቀለሞች", "አክሮማቲክ ቀለሞች"], answer: "ሶስተኛ ቀለሞች" },
+                        { question: "ቢጫ እና ሰማያዊ ሲቀላቀሉ ምን አይነት ቀለም ይፈጠራል?", options: ["ቀይ", "ብርቱካናማ", "አረንጓዴ", "ሐምራዊ"], answer: "አረንጓዴ" },
+                        { question: "የስዕል ቴክኒክ 'ክሮስ-ሃቺንግ' ምንን ይጠቀማል?", options: ["ትናንሽ ነጥቦችን", "አጭር መስመሮችን", "የተሻገሩ መስመሮችን", "ረዥም መስመሮችን"], answer: "የተሻገሩ መስመሮችን" },
+                        { question: "አንድን ነገር 'ቮልዩም' ለማሳየት ምን እንጠቀማለን?", options: ["ቀለም", "ብርሃን እና ጥላ", "መስመር", "ቅርፅ"], answer: "ብርሃን እና ጥላ" },
+                        { question: "ታዋቂው 'ገንሸርኒካ' ስዕል የማን ነው?", options: ["ቫን ጎግ", "ፒካሶ", "ዳሊ", "ሞኔት"], answer: "ፒካሶ" },
+                        { question: "የ'ኩንቴምፖራሪ አርት' ስዕል ዘውግ በየትኛው ክፍለ ዘመን ነው?", options: ["18ኛ", "19ኛ", "20ኛ-21ኛ", "16ኛ"], answer: "20ኛ-21ኛ" },
+                        { question: "በስዕል ውስጥ 'ፕሮፖርሽን' ምን ማለት ነው?", options: ["የቀለሞች ስምምነት", "የክፍሎች ትክክለኛ መጠን", "የመስመሮች ውፍረት", "የጥላ ጥራት"], answer: "የክፍሎች ትክክለኛ መጠን" },
+                        { question: "የስዕል መሳሪያ 'ፓስቴል' ምን አይነት ቁሳቁስ ነው?", options: ["ዘይት ቀለም", "የውሃ ቀለም", "ደረቅ ቀለም", "የአክሪሊክ ቀለም"], answer: "ደረቅ ቀለም" },
+                        { question: "የ'ባሮክ' የጥበብ ዘመን ዋና ባህሪ ምንድን ነው?", options: ["ቀላልነት", "ድራማዊነት እና እንቅስቃሴ", "ጂኦሜትሪክ ቅርጾች", "ረጋ ያለ ስዕሎች"], answer: "ድራማዊነት እና እንቅስቃሴ" },
+                        { question: "በስዕል ውስጥ 'ኢምፋሲስ' ምንን ይገልጻል?", options: ["የቀለሞች ብዛት", "በስዕሉ ውስጥ ዋናው ትኩረት", "የመስመሮች ብዛት", "የጥላዎች ጥንካሬ"], answer: "በስዕሉ ውስጥ ዋናው ትኩረት" }
+                    ]
+                },
+                {
+                    name: "የ 3ኛ ክፍል ስዕል",
+                    id: "grade3_drawing",
+                    questions: [
+                        { question: "ከሚከተሉት ውስጥ 'አናሎጎስ' የቀለም ቅንጅት ምንን ይጠቀማል?", options: ["ተቃራኒ ቀለሞችን", "በቀለም ጎማ ላይ አጠገብ ያሉ ቀለሞችን", "አንድ ቀለም ብቻ", "ዋና ቀለሞችን ብቻ"], answer: "በቀለም ጎማ ላይ አጠገብ ያሉ ቀለሞችን" },
+                        { question: "የስዕል ቴክኒክ 'ስፉማቶ' በምን ይታወቃል?", options: ["ሹል መስመሮች", "ግልጽ ያልሆኑ እና ብዥ ያሉ ድንበሮች", "ብሩህ ቀለሞች", "ጥቁር እና ነጭ ስዕሎች"], answer: "ግልጽ ያልሆኑ እና ብዥ ያሉ ድንበሮች" },
+                        { question: "በስዕል ውስጥ 'ኮንትራስት' ምን ማለት ነው?", options: ["የቀለሞች አንድነት", "የቀለሞች ልዩነት", "የመስመሮች ስምምነት", "የቅርጾች ተመሳሳይነት"], answer: "የቀለሞች ልዩነት" },
+                        { question: "ታዋቂውን 'ዘ ላስት ሰፐር' ማን የሳለው?", options: ["ራፋኤል", "ሊዮናርዶ ዳ ቪንቺ", "ሚካኤል አንጀሎ", "ዶናቴሎ"], answer: "ሊዮናርዶ ዳ ቪንቺ" },
+                        { question: "የ'አርት ኑቮ' የጥበብ ዘውግ ዋና ባህሪ ምንድን ነው?", options: ["ጂኦሜትሪክ ቅርጾች", "የተፈጥሮ ቅርጾች እና ኩርባ መስመሮች", "ረቂቅ ምስሎች", "ብሩህ ቀለሞች"], answer: "የተፈጥሮ ቅርጾች እና ኩርባ መስመሮች" },
+                        { question: "የስዕል 'ዳይናሚክስ' ምንን ያመለክታል?", options: ["የቀለሞች ብዛት", "የምስሉ እንቅስቃሴ እና ጉልበት", "የመስመሮች ስምምነት", "የቅርጾች መጠን"], answer: "የምስሉ እንቅስቃሴ እና ጉልበት" },
+                        { question: "የ'ካንቫስ' ስዕል ቁሳቁስ ከምን ይሰራል?", options: ["ከወረቀት", "ከእንጨት", "ከጨርቅ", "ከፕላስቲክ"], answer: "ከጨርቅ" },
+                        { question: "በስዕል ውስጥ 'ቪዥዋል ሃይረርኪ' ምንን ይገልጻል?", options: ["የቀለሞች ቅደም ተከተል", "በምስሉ ውስጥ የነገሮች አስፈላጊነት ቅደም ተከተል", "የመስመሮች ጥራት", "የጥላዎች ጥንካሬ"], answer: "በምስሉ ውስጥ የነገሮች አስፈላጊነት ቅደም ተከተል" },
+                        { question: "የ'ጎቲክ' የጥበብ ዘመን በየትኛው ክፍለ ዘመን ነበር?", options: ["10ኛ-12ኛ", "12ኛ-15ኛ", "16ኛ-17ኛ", "18ኛ-19ኛ"], answer: "12ኛ-15ኛ" },
+                        { question: "በስዕል ውስጥ 'ሃርሞኒ' ምን ማለት ነው?", options: ["የተለያዩ ነገሮችን አንድ ላይ ማጣመር", "የቀለሞች ተቃራኒነት", "የመስመሮች ብዛት", "የጥላዎች ልዩነት"], answer: "የተለያዩ ነገሮችን አንድ ላይ ማጣመር" }
+                    ]
+                }
+            ];
+
+            // DOM elements
+            const levelListDiv = document.getElementById('level-list');
+            const quizSectionDiv = document.getElementById('quiz-section');
+            const backButton = document.getElementById('back-button');
+            const levelTitle = document.getElementById('level-title');
+            const questionNumberDisplay = document.getElementById('question-number');
+            const questionDisplay = document.getElementById('question-display');
+            const optionsContainer = document.getElementById('options-container');
+            const submitAnswerButton = document.getElementById('submit-answer');
+            const nextQuestionButton = document.getElementById('next-question');
+            const feedbackDisplay = document.getElementById('feedback-display');
+            const quizCompleteMessage = document.getElementById('quiz-complete-message');
+
+            let currentLevel = null;
+            let currentQuestionIndex = 0;
+            let selectedOption = null;
+
+            // Function to render the list of levels
+            function renderLevels() {
+                levelListDiv.innerHTML = ''; // Clear previous list
+                levels.forEach(level => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-item bg-blue-100 text-blue-800 p-4 rounded-lg cursor-pointer text-xl font-medium shadow-md hover:bg-blue-200';
+                    listItem.textContent = level.name;
+                    listItem.dataset.levelId = level.id; // Store ID for easy lookup
+                    listItem.addEventListener('click', () => showQuiz(level));
+                    levelListDiv.appendChild(listItem);
+                });
+            }
+
+            // Function to show the quiz section for a given level
+            function showQuiz(level, startIndex = 0) {
+                currentLevel = level;
+                currentQuestionIndex = startIndex;
+                levelListDiv.classList.add('hidden'); // Hide level list
+                quizSectionDiv.classList.remove('hidden'); // Show quiz section
+
+                // Reset quiz section state
+                quizCompleteMessage.classList.add('hidden');
+                submitAnswerButton.classList.remove('hidden');
+                nextQuestionButton.classList.add('hidden');
+                optionsContainer.classList.remove('pointer-events-none', 'opacity-50'); // Enable options interaction
+
+                levelTitle.textContent = level.name;
+                displayQuestion(); // Display the first question
+
+                // Save user's current level to Firestore ONLY if Firebase is initialized
+                if (firebaseInitialized) {
+                    saveUserProgress(userId, level.id, currentQuestionIndex);
+                }
+            }
+
+            // Function to display the current question and its options
+            function displayQuestion() {
+                if (currentLevel && currentQuestionIndex < currentLevel.questions.length) {
+                    const q = currentLevel.questions[currentQuestionIndex];
+                    questionNumberDisplay.textContent = `ጥያቄ ${currentQuestionIndex + 1} ከ ${currentLevel.questions.length}`;
+                    questionDisplay.textContent = q.question;
+
+                    // Clear previous options
+                    optionsContainer.innerHTML = '';
+                    selectedOption = null; // Reset selected option
+
+                    // Shuffle options before displaying
+                    const shuffledOptions = shuffleArray([...q.options]);
+
+                    // Create and append radio buttons for each option
+                    shuffledOptions.forEach((option, index) => {
+                        const optionDiv = document.createElement('label');
+                        optionDiv.className = 'option-item block text-gray-700 hover:bg-blue-50';
+                        optionDiv.innerHTML = `
+                            <input type="radio" name="quiz_option" value="${option}" class="form-radio h-5 w-5 text-blue-600">
+                            <span class="ml-3 text-lg">${option}</span>
+                        `;
+                        optionsContainer.appendChild(optionDiv);
+
+                        // Add event listener to each radio button to track selection
+                        optionDiv.querySelector('input[type="radio"]').addEventListener('change', (event) => {
+                            selectedOption = event.target.value;
+                            feedbackDisplay.textContent = ''; // Clear feedback when a new option is selected
+                            feedbackDisplay.className = 'text-lg mt-4 font-medium'; // Reset feedback style
+                        });
+                    });
+
+                    feedbackDisplay.textContent = ''; // Clear feedback
+                    feedbackDisplay.className = 'text-lg mt-4 font-medium'; // Reset feedback style
+                    submitAnswerButton.classList.remove('hidden'); // Ensure submit button is visible
+                    nextQuestionButton.classList.add('hidden'); // Ensure next button is hidden
+                    optionsContainer.classList.remove('pointer-events-none', 'opacity-50'); // Re-enable options
+                } else {
+                    // Quiz is complete
+                    quizCompleteMessage.classList.remove('hidden');
+                    questionNumberDisplay.textContent = '';
+                    questionDisplay.textContent = '';
+                    optionsContainer.innerHTML = ''; // Clear options
+                    submitAnswerButton.classList.add('hidden'); // Hide submit
+                    nextQuestionButton.classList.add('hidden'); // Hide next
+                }
+            }
+
+            // Function to handle answer submission
+            submitAnswerButton.addEventListener('click', () => {
+                if (!selectedOption) {
+                    showModal("እባክዎ መልስ ከማስገባትዎ በፊት መልስ ይምረጡ።");
+                    return;
+                }
+
+                if (currentLevel && currentQuestionIndex < currentLevel.questions.length) {
+                    const correctAnswer = currentLevel.questions[currentQuestionIndex].answer;
+                    // Normalize answers for comparison (case-insensitive)
+                    if (selectedOption.toLowerCase() === correctAnswer.toLowerCase()) {
+                        feedbackDisplay.textContent = "ትክክል ነው! በጣም ጥሩ!";
+                        feedbackDisplay.className = 'text-lg mt-4 font-medium text-green-600';
+                    } else {
+                        feedbackDisplay.textContent = `ትክክል አይደለም። ትክክለኛው መልስ "${correctAnswer}" ነው።`;
+                        feedbackDisplay.className = 'text-lg mt-4 font-medium text-red-600';
+                    }
+                    submitAnswerButton.classList.add('hidden'); // Hide submit
+                    nextQuestionButton.classList.remove('hidden'); // Show next
+                    optionsContainer.classList.add('pointer-events-none', 'opacity-50'); // Disable options after submission
+                }
+            });
+
+            // Function to move to the next question
+            nextQuestionButton.addEventListener('click', () => {
+                currentQuestionIndex++;
+                displayQuestion(); // Display the next question or quiz complete message
+
+                // Save progress after moving to next question ONLY if Firebase is initialized
+                if (firebaseInitialized && currentLevel) { // Check currentLevel to avoid saving if quiz is complete
+                    saveUserProgress(userId, currentLevel.id, currentQuestionIndex);
+                }
+            });
+
+            // Function to go back to the level list
+            backButton.addEventListener('click', () => {
+                quizSectionDiv.classList.add('hidden'); // Hide quiz section
+                levelListDiv.classList.remove('hidden'); // Show level list
+                quizCompleteMessage.classList.add('hidden'); // Hide quiz complete message
+                optionsContainer.classList.remove('pointer-events-none', 'opacity-50'); // Ensure options are re-enabled
+                currentLevel = null;
+                currentQuestionIndex = 0; // Reset index for next quiz
+            });
+
+            // Initial render of levels
+            renderLevels();
+        }
+    </script>
+</body>
+</html>
